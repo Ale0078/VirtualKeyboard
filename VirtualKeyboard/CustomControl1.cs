@@ -43,14 +43,7 @@ namespace VirtualKeyboard
             char c = Convert.ToChar(VirtualKeyShort.KEY_A, info);
             ContentStringFormat = c.ToString().ToLower();
         }
-
-        private enum InputEventType : uint
-        {
-            INPUT_MOUSE = 0,
-            INPUT_KEYBOARD = 1,
-            INPUT_HARDWARE = 2
-        }
-         
+        
         protected override void OnClick()
         {
             base.OnClick();
