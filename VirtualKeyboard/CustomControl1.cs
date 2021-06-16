@@ -44,7 +44,7 @@ namespace VirtualKeyboard
             ContentStringFormat = c.ToString().ToLower();
         }
 
-        private enum EventType : uint
+        private enum InputEventType : uint
         {
             INPUT_MOUSE = 0,
             INPUT_KEYBOARD = 1,
@@ -61,7 +61,7 @@ namespace VirtualKeyboard
 
             inputs[0] = new INPUT()
             {
-                type = (uint)EventType.INPUT_KEYBOARD,
+                type = (uint)InputEventType.INPUT_KEYBOARD,
                 U = new InputUnion()
                 {
                     ki = new KEYBDINPUT
@@ -82,7 +82,7 @@ namespace VirtualKeyboard
 
             inputs[0] = new INPUT()
             {
-                type = (uint)EventType.INPUT_KEYBOARD,
+                type = (uint)InputEventType.INPUT_KEYBOARD,
                 U = new InputUnion()
                 {
                     ki = new KEYBDINPUT
@@ -94,7 +94,7 @@ namespace VirtualKeyboard
 
             inputs[1] = new INPUT()
             {
-                type = (uint)EventType.INPUT_KEYBOARD,
+                type = (uint)InputEventType.INPUT_KEYBOARD,
                 U = new InputUnion()
                 {
                     ki = new KEYBDINPUT
@@ -115,18 +115,5 @@ namespace VirtualKeyboard
 
         [DllImport("user32.dll")]
         internal static extern uint MapVirtualKey(uint uCode, uint uMapType);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct INPUT
-        {
-            internal uint type;
-            internal InputUnion U;
-            internal static int Size
-            {
-                get { return Marshal.SizeOf(typeof(INPUT)); }
-            }
-        }
-
-        
     }
 }
