@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using System.Globalization;
 
 using VirtualKeyboard.Enums;
+using VirtualKeyboard.Structs;
 
 namespace VirtualKeyboard
 {
@@ -156,14 +157,6 @@ namespace VirtualKeyboard
             internal short wParamH;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct KEYBDINPUT
-        {
-            internal VirtualKeyShort wVk;
-            internal ScanCodeShort wScan;
-            internal KEYEVENTF dwFlags;
-            internal int time;
-            internal UIntPtr dwExtraInfo;
-        }
+        
     }
 }
