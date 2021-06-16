@@ -137,16 +137,5 @@ namespace VirtualKeyboard
             [FieldOffset(0)]
             internal HARDWAREINPUT hi;
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct MOUSEINPUT
-        {
-            internal int dx;
-            internal int dy;
-            internal int mouseData;
-            internal MOUSEEVENTF dwFlags;
-            internal uint time;
-            internal UIntPtr dwExtraInfo;
-        }
     }
 }
