@@ -1,0 +1,15 @@
+﻿<Window x:Class="TestVirtualKeyboard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TestVirtualKeyboard"
+        mc:Ignorable="d"
+        xmlns:key="clr-namespace:VirtualKeyboard;assembly=VirtualKeyboard"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <key:CustomControl1 Background="red" Height="100" Width="100"/>
+        <TextBox Background="Yellow" Height="20" Width="30" HorizontalAlignment="Left"/>
+        <TextBox Background="Green" Height="20" Width="30" HorizontalAlignment="Right"/>
+    </Grid>
+</Window>
