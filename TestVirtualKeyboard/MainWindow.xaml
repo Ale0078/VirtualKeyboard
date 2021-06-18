@@ -8,8 +8,15 @@
         xmlns:key="clr-namespace:VirtualKeyboard;assembly=VirtualKeyboard"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <key:CustomControl1 Background="red" Height="100" Width="100"/>
-        <TextBox Background="Yellow" Height="20" Width="30" HorizontalAlignment="Left"/>
-        <TextBox Background="Green" Height="20" Width="30" HorizontalAlignment="Right"/>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        
+        <!--<key:CustomControl1 Background="red" Height="100" Width="100"/>-->
+        <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="30" HorizontalAlignment="Left"/>
+        <TextBox Grid.Row="0" Background="Green" Height="20" Width="30" HorizontalAlignment="Right"/>
+
+        <key:Keyboard Grid.Row="1"/>
     </Grid>
 </Window>
