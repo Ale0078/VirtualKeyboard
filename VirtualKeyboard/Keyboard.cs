@@ -59,6 +59,7 @@ namespace VirtualKeyboard
             _keyBoard = new Grid();
 
             FillNumpad();
+            FillKeyBoard();
         }
 
         public bool HasNumpad 
@@ -81,7 +82,6 @@ namespace VirtualKeyboard
             _boardContainer.Children.Add(_numpad);//ToDo: do it after changing hasnumap or haskeyboard property
         }
 
-
         private void FillNumpad() //ToDo: Add margin to buttons
         {
             GenerateRowAndColumn(_numpad, NUMPAD_ROWS, NUMPAD_COLUMNS);
@@ -97,10 +97,11 @@ namespace VirtualKeyboard
                     RepeatButton numberButton = new()
                     {
                         Content = Convert.ToChar(number),
-                        DataContext = (VirtualKeyShort)number,
                         Margin = new Thickness(5),
                         Focusable = false
                     };
+
+                    ButtonKeyCode.SetKeyCode(numberButton, (VirtualKeyShort)number);
 
                     numberButton.Click += ClickRepeatButton;
 
@@ -118,10 +119,11 @@ namespace VirtualKeyboard
             RepeatButton point = new()
             {
                 Content = '.',
-                DataContext = VirtualKeyShort.OEM_PERIOD,
                 Margin = new Thickness(5),
                 Focusable = false
             };
+
+            ButtonKeyCode.SetKeyCode(point, VirtualKeyShort.OEM_PERIOD);
 
             point.Click += ClickRepeatButton;
 
@@ -132,10 +134,11 @@ namespace VirtualKeyboard
             RepeatButton zero = new()
             {
                 Content = '0',
-                DataContext = VirtualKeyShort.KEY_0,
                 Margin = new Thickness(5),
                 Focusable = false
             };
+
+            ButtonKeyCode.SetKeyCode(zero, VirtualKeyShort.KEY_0);
 
             zero.Click += ClickRepeatButton;
 
@@ -169,7 +172,7 @@ namespace VirtualKeyboard
         {
             INPUT[] inputs = new INPUT[2];
 
-            VirtualKeyShort key = (VirtualKeyShort)((Control)sender).DataContext;
+            VirtualKeyShort key = ButtonKeyCode.GetKeyCode(sender as DependencyObject);
 
             inputs[0] = new INPUT()
             {
@@ -210,6 +213,25 @@ namespace VirtualKeyboard
         {
             Grid.SetColumn(element, columnPosition);
             Grid.SetRow(element, rowPosition);
+        }
+
+        private static class ButtonKeyCode 
+        {
+            public static readonly DependencyProperty KeyCodeProperty;
+
+            static ButtonKeyCode() 
+            {
+                KeyCodeProperty = DependencyProperty.RegisterAttached(
+                    name: "KeyCode",
+                    propertyType: typeof(VirtualKeyShort),
+                    ownerType: typeof(ButtonKeyCode));
+            }
+
+            public static void SetKeyCode(DependencyObject element, VirtualKeyShort keyCode) =>
+                element.SetValue(KeyCodeProperty, keyCode);
+
+            public static VirtualKeyShort GetKeyCode(DependencyObject element) =>
+                (VirtualKeyShort)element.GetValue(KeyCodeProperty);
         }
     }
 }
