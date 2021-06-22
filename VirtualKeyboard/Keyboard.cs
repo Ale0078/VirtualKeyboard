@@ -170,7 +170,7 @@ namespace VirtualKeyboard
 
         private void ClickRepeatButton(object sender, RoutedEventArgs e) 
         {
-            INPUT[] inputs = new INPUT[2];
+            INPUT[] inputs = new INPUT[1];
 
             VirtualKeyShort key = ButtonKeyCode.GetKeyCode(sender as DependencyObject);
 
@@ -185,26 +185,6 @@ namespace VirtualKeyboard
                     }
                 }
             };
-
-            //if (key == VirtualKeyShort.CAPITAL)
-            //{
-            //    inputs[1] = new INPUT()
-            //    {
-            //        type = (uint)InputEventType.INPUT_KEYBOARD,
-            //        U = new InputUnion()
-            //        {
-            //            ki = new KEYBDINPUT
-            //            {
-            //                wVk = key,
-            //                dwFlags = KEYEVENTF.KEYUP
-            //            }
-            //        }
-            //    };
-
-            //    SendInput(2, inputs, INPUT.Size);
-
-            //    return;
-            //}
 
             SendInput(1, inputs, INPUT.Size);
         }
@@ -226,7 +206,7 @@ namespace VirtualKeyboard
                     propertyType: typeof(VirtualKeyShort),
                     ownerType: typeof(ButtonKeyCode));
             }
-
+            
             public static void SetKeyCode(DependencyObject element, VirtualKeyShort keyCode) =>
                 element.SetValue(KeyCodeProperty, keyCode);
 
