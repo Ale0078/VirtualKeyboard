@@ -12,6 +12,7 @@ using static VirtualKeyboard.Functions.User32;
 
 using VirtualKeyboard.Enums;
 using VirtualKeyboard.Structs;
+using VirtualKeyboard.Data;
 
 namespace VirtualKeyboard
 {
@@ -26,6 +27,10 @@ namespace VirtualKeyboard
         private const int KEY_BOARD_ROWS = 4;
         private const int KEY_BOARD_COLUMNS = 13;
 
+        private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
+        private double DEFAULT_BUTTON_WIDTH = 60;
+        private double DEFAULT_BUTTON_HEUGHT = 60;
+
         private Grid _boardContainer;
 
         private readonly Grid _numpad;
@@ -33,6 +38,8 @@ namespace VirtualKeyboard
 
         public static readonly DependencyProperty HasNumpadProperty;
         public static readonly DependencyProperty HasKeyBoardProperty;
+
+        public static readonly DependencyProperty ButtonMetadataProperty;
 
         static Keyboard()
         {
@@ -49,7 +56,18 @@ namespace VirtualKeyboard
                 propertyType: typeof(bool),
                 ownerType: typeof(Keyboard),
                 typeMetadata: new PropertyMetadata(false));//ToDo: switch to true
+
+            ButtonMetadataProperty = DependencyProperty.RegisterAttached(
+                name: "ButtonMetadata",
+                propertyType: typeof(ButtonMetadata),
+                ownerType: typeof(Keyboard));
         }
+
+        internal static void SetButtonMetadata(DependencyObject element, ButtonMetadata metadata) =>
+                element.SetValue(ButtonMetadataProperty, metadata);
+
+        internal static ButtonMetadata GetButtonMetadata(DependencyObject element) =>
+            (ButtonMetadata)element.GetValue(ButtonMetadataProperty);
 
         public Keyboard()
         {
@@ -97,11 +115,11 @@ namespace VirtualKeyboard
                     RepeatButton numberButton = new()
                     {
                         Content = Convert.ToChar(number),
-                        Margin = new Thickness(5),
+                        Margin = _buttonMargen,
                         Focusable = false
                     };
 
-                    ButtonKeyCode.SetKeyCode(numberButton, (VirtualKeyShort)number);
+                    SetButtonMetadata(numberButton, new ButtonMetadata { KeyCode = (VirtualKeyShort)number });
 
                     numberButton.Click += ClickRepeatButton;
 
@@ -119,11 +137,11 @@ namespace VirtualKeyboard
             RepeatButton point = new()
             {
                 Content = '.',
-                Margin = new Thickness(5),
+                Margin = _buttonMargen,
                 Focusable = false
             };
 
-            ButtonKeyCode.SetKeyCode(point, VirtualKeyShort.OEM_PERIOD);
+            SetButtonMetadata(point, new ButtonMetadata { KeyCode = VirtualKeyShort.OEM_PERIOD });
 
             point.Click += ClickRepeatButton;
 
@@ -134,11 +152,11 @@ namespace VirtualKeyboard
             RepeatButton zero = new()
             {
                 Content = '0',
-                Margin = new Thickness(5),
+                Margin = _buttonMargen,
                 Focusable = false
             };
 
-            ButtonKeyCode.SetKeyCode(zero, VirtualKeyShort.KEY_0);
+            SetButtonMetadata(zero, new ButtonMetadata { KeyCode = VirtualKeyShort.KEY_0 });
 
             zero.Click += ClickRepeatButton;
 
@@ -172,7 +190,7 @@ namespace VirtualKeyboard
         {
             INPUT[] inputs = new INPUT[1];
 
-            VirtualKeyShort key = ButtonKeyCode.GetKeyCode(sender as DependencyObject);
+            ButtonMetadata key = GetButtonMetadata(sender as DependencyObject);
 
             inputs[0] = new INPUT()
             {
@@ -181,7 +199,7 @@ namespace VirtualKeyboard
                 {
                     ki = new KEYBDINPUT
                     {
-                        wVk = key
+                        wVk = key.KeyCode
                     }
                 }
             };
@@ -193,25 +211,6 @@ namespace VirtualKeyboard
         {
             Grid.SetColumn(element, columnPosition);
             Grid.SetRow(element, rowPosition);
-        }
-
-        private static class ButtonKeyCode 
-        {
-            public static readonly DependencyProperty KeyCodeProperty;
-
-            static ButtonKeyCode() 
-            {
-                KeyCodeProperty = DependencyProperty.RegisterAttached(
-                    name: "KeyCode",
-                    propertyType: typeof(VirtualKeyShort),
-                    ownerType: typeof(ButtonKeyCode));
-            }
-            
-            public static void SetKeyCode(DependencyObject element, VirtualKeyShort keyCode) =>
-                element.SetValue(KeyCodeProperty, keyCode);
-
-            public static VirtualKeyShort GetKeyCode(DependencyObject element) =>
-                (VirtualKeyShort)element.GetValue(KeyCodeProperty);
         }
     }
 }
