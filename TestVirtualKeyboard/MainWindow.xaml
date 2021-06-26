@@ -14,8 +14,8 @@
         </Grid.RowDefinitions>
         
         <!--<key:CustomControl1 Background="red" Height="100" Width="100"/>-->
-        <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="30" HorizontalAlignment="Left"/>
-        <TextBox Grid.Row="0" Background="Green" Height="20" Width="30" HorizontalAlignment="Right"/>
+        <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"/>
+        <TextBox Grid.Row="0" Background="Green" Height="20" Width="300" HorizontalAlignment="Right"/>
 
         <key:Keyboard Grid.Row="1"/>
     </Grid>
