@@ -56,15 +56,15 @@ namespace VirtualKeyboard
                 typeMetadata: new PropertyMetadata(false));//ToDo: switch to true
 
             ButtonMetadataProperty = DependencyProperty.RegisterAttached(
-                name: "ButtonMetadata",
+                name: "KeyMetadata",
                 propertyType: typeof(KeyMetadata),
                 ownerType: typeof(Keyboard));
         }
 
-        internal static void SetButtonMetadata(DependencyObject element, KeyMetadata metadata) =>
+        internal static void SetKeyMetadata(DependencyObject element, KeyMetadata metadata) =>
                 element.SetValue(ButtonMetadataProperty, metadata);
 
-        internal static KeyMetadata GetButtonMetadata(DependencyObject element) =>
+        internal static KeyMetadata GetKeyMetadata(DependencyObject element) =>
             (KeyMetadata)element.GetValue(ButtonMetadataProperty);
 
         public Keyboard()
@@ -124,7 +124,7 @@ namespace VirtualKeyboard
                         Focusable = false
                     };
 
-                    SetButtonMetadata(numberButton, new KeyMetadata { KeyCode = (VirtualKeyShort)number });
+                    SetKeyMetadata(numberButton, new KeyMetadata { KeyCode = (VirtualKeyShort)number });
 
                     numberButton.Click += ClickRepeatButton;
 
@@ -146,7 +146,7 @@ namespace VirtualKeyboard
                 Focusable = false
             };
 
-            SetButtonMetadata(point, new KeyMetadata { KeyCode = VirtualKeyShort.DECIMAL });//ToDo: point
+            SetKeyMetadata(point, new KeyMetadata { KeyCode = VirtualKeyShort.DECIMAL });//ToDo: point
 
             point.Click += ClickRepeatButton;
 
@@ -161,7 +161,7 @@ namespace VirtualKeyboard
                 Focusable = false
             };
 
-            SetButtonMetadata(zero, new KeyMetadata { KeyCode = VirtualKeyShort.KEY_0 });
+            SetKeyMetadata(zero, new KeyMetadata { KeyCode = VirtualKeyShort.KEY_0 });
 
             zero.Click += ClickRepeatButton;
 
@@ -226,7 +226,7 @@ namespace VirtualKeyboard
 
                     SetConstName(data, button);
 
-                    SetButtonMetadata(button, data);
+                    SetKeyMetadata(button, data);
 
                     panel.Children.Add(button);
 
@@ -370,7 +370,7 @@ namespace VirtualKeyboard
         {
             INPUT[] inputs = new INPUT[1];
 
-            KeyMetadata key = GetButtonMetadata(sender as DependencyObject);
+            KeyMetadata key = GetKeyMetadata(sender as DependencyObject);
 
             inputs[0] = new INPUT()
             {
