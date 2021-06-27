@@ -28,7 +28,6 @@ namespace VirtualKeyboard.ViewModels
             {
                 _height = value;
 
-
                 OnPropertyChanged();
             }
         }
