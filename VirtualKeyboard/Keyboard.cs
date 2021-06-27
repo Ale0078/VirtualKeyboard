@@ -18,23 +18,18 @@ using VirtualKeyboard.ViewModels;
 
 namespace VirtualKeyboard
 {
-    //[TemplatePart(Name = BOARD_CONTAINER, Type = typeof(Grid))]
     public class Keyboard : Control
     {
-        //private const string BOARD_CONTAINER = "PART_boardContainer";
-
         private const int NUMPAD_ROWS = 4;
-        private const int NUMPAD_COLUMNS = 3;
-        private const double DEFAULT_BUTTON_WIDTH = 60;//ToDo: Set Width to buttons from user
-        private const double DEFAULT_BUTTON_HEIGHT = 60;//ToDo: Set Height to buttons from user
+        //private const int NUMPAD_COLUMNS = 3;
+        //private const double DEFAULT_BUTTON_WIDTH = 60;//ToDo: Set Width to buttons from user
+        //private const double DEFAULT_BUTTON_HEIGHT = 60;//ToDo: Set Height to buttons from user
 
-        private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
+        //private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
         private KeyMetadata[][] _keyBoardMetadatas;
 
-        //private Grid _boardContainer;
-
-        private readonly Grid _numpad;
-        private readonly Grid _keyBoard;
+        //private readonly Grid _numpad;
+        //private readonly Grid _keyBoard;
 
         public static readonly DependencyProperty HasNumpadProperty;
         public static readonly DependencyProperty HasKeyBoardProperty;
@@ -80,12 +75,12 @@ namespace VirtualKeyboard
         {
             Focusable = false;
 
-            _numpad = new Grid();
-            _keyBoard = new Grid();
+            //_numpad = new Grid();
+            //_keyBoard = new Grid();
 
             GenerateMetadata();
-            FillNumpad();
-            FillKeyBoard();
+            //FillNumpad();
+            //FillKeyBoard();
 
 
 
@@ -110,153 +105,139 @@ namespace VirtualKeyboard
             set => SetValue(KeysDataProperty, value);
         }
 
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
+        //private void FillNumpad() //ToDo: Add margin to buttons
+        //{
+        //    GenerateRowAndColumn(_numpad, NUMPAD_ROWS, NUMPAD_COLUMNS);
 
-            //_boardContainer = GetTemplateChild(BOARD_CONTAINER) as Grid;
+        //    SetZeroPointToNumpad();
 
+        //    uint number = 0x31;
 
-            //GenerateRowAndColumn(_boardContainer, 0, 1);
-            //Grid.SetColumn(_keyBoard, 0);
-            //_boardContainer.Children.Add(_keyBoard);
-            //Grid.SetColumn(_numpad, 1);
-            //_boardContainer.Children.Add(_numpad);//ToDo: do it after changing hasnumap or haskeyboard property
-        }
+        //    for (int i = _numpad.RowDefinitions.Count - 2; i >= 0; i--)
+        //    {
+        //        for (int j = 0; j < _numpad.ColumnDefinitions.Count; j++)
+        //        {
+        //            RepeatButton numberButton = new()
+        //            {
+        //                Content = Convert.ToChar(number),
+        //                Margin = _buttonMargen,
+        //                Focusable = false
+        //            };
 
-        private void FillNumpad() //ToDo: Add margin to buttons
-        {
-            GenerateRowAndColumn(_numpad, NUMPAD_ROWS, NUMPAD_COLUMNS);
+        //            SetKeyMetadata(numberButton, new KeyMetadata { KeyCode = (VirtualKeyShort)number });
 
-            SetZeroPointToNumpad();
+        //            numberButton.Click += ClickRepeatButton;
 
-            uint number = 0x31;
+        //            _numpad.Children.Add(numberButton);
 
-            for (int i = _numpad.RowDefinitions.Count - 2; i >= 0; i--)
-            {
-                for (int j = 0; j < _numpad.ColumnDefinitions.Count; j++)
-                {
-                    RepeatButton numberButton = new()
-                    {
-                        Content = Convert.ToChar(number),
-                        Margin = _buttonMargen,
-                        Focusable = false
-                    };
+        //            SetRowColumnPosition(numberButton, i, j);
 
-                    SetKeyMetadata(numberButton, new KeyMetadata { KeyCode = (VirtualKeyShort)number });
+        //            number++;
+        //        }
+        //    }
+        //}
 
-                    numberButton.Click += ClickRepeatButton;
+        //private void SetZeroPointToNumpad() 
+        //{
+        //    RepeatButton point = new()
+        //    {
+        //        Content = '.',
+        //        Margin = _buttonMargen,
+        //        Focusable = false
+        //    };
 
-                    _numpad.Children.Add(numberButton);
+        //    SetKeyMetadata(point, new KeyMetadata { KeyCode = VirtualKeyShort.DECIMAL });//ToDo: point
 
-                    SetRowColumnPosition(numberButton, i, j);
+        //    point.Click += ClickRepeatButton;
 
-                    number++;
-                }
-            }
-        }
+        //    SetRowColumnPosition(point, _numpad.RowDefinitions.Count - 1, _numpad.ColumnDefinitions.Count - 1);
 
-        private void SetZeroPointToNumpad() 
-        {
-            RepeatButton point = new()
-            {
-                Content = '.',
-                Margin = _buttonMargen,
-                Focusable = false
-            };
+        //    _numpad.Children.Add(point);
 
-            SetKeyMetadata(point, new KeyMetadata { KeyCode = VirtualKeyShort.DECIMAL });//ToDo: point
+        //    RepeatButton zero = new()
+        //    {
+        //        Content = '0',
+        //        Margin = _buttonMargen,
+        //        Focusable = false
+        //    };
 
-            point.Click += ClickRepeatButton;
+        //    SetKeyMetadata(zero, new KeyMetadata { KeyCode = VirtualKeyShort.KEY_0 });
 
-            SetRowColumnPosition(point, _numpad.RowDefinitions.Count - 1, _numpad.ColumnDefinitions.Count - 1);
+        //    zero.Click += ClickRepeatButton;
 
-            _numpad.Children.Add(point);
+        //    Grid.SetColumnSpan(zero, 2);
+        //    Grid.SetRow(zero, _numpad.RowDefinitions.Count - 1);
 
-            RepeatButton zero = new()
-            {
-                Content = '0',
-                Margin = _buttonMargen,
-                Focusable = false
-            };
+        //    _numpad.Children.Add(zero);
+        //}
 
-            SetKeyMetadata(zero, new KeyMetadata { KeyCode = VirtualKeyShort.KEY_0 });
+        //private void FillKeyBoard() 
+        //{
+        //    GenerateRowAndColumn(_keyBoard, NUMPAD_ROWS, 0);
 
-            zero.Click += ClickRepeatButton;
+        //    for (int i = 0; i < NUMPAD_ROWS; i++)
+        //    {
+        //        StackPanel panel = new StackPanel
+        //        {
+        //            Orientation = Orientation.Horizontal
+        //        };
 
-            Grid.SetColumnSpan(zero, 2);
-            Grid.SetRow(zero, _numpad.RowDefinitions.Count - 1);
+        //        int position = 0;
+        //        ButtonBase button;
 
-            _numpad.Children.Add(zero);
-        }
+        //        foreach (KeyMetadata data in _keyBoardMetadatas[i])
+        //        {
+        //            if (data.KeyCode is null)
+        //            {
+        //                UIElement element = CreateUniqueButtons(data, position);//ToDo: set handler to combobox and button
 
-        private void FillKeyBoard() 
-        {
-            GenerateRowAndColumn(_keyBoard, NUMPAD_ROWS, 0);
+        //                panel.Children.Add(element);
 
-            for (int i = 0; i < NUMPAD_ROWS; i++)
-            {
-                StackPanel panel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal
-                };
+        //                position++;
 
-                int position = 0;
-                ButtonBase button;
+        //                continue;
+        //            }
 
-                foreach (KeyMetadata data in _keyBoardMetadatas[i])
-                {
-                    if (data.KeyCode is null)
-                    {
-                        UIElement element = CreateUniqueButtons(data, position);//ToDo: set handler to combobox and button
+        //            if (data.KeyCode is VirtualKeyShort.LSHIFT)
+        //            {
+        //                button = new Button()//ToDo: with shift
+        //                {
+        //                    Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
+        //                    Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
+        //                    Focusable = false,
+        //                    Content = TranslateKeyCode(data.KeyCode.Value)
+        //                };
 
-                        panel.Children.Add(element);
+        //                button.Click += ClickShiftButton;
+        //            }
+        //            else
+        //            {
+        //                button = new RepeatButton()
+        //                {
+        //                    Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
+        //                    Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
+        //                    Focusable = false,
+        //                    Content = TranslateKeyCode(data.KeyCode.Value)
+        //                    //Margin = _buttonMargen
+        //                };
 
-                        position++;
+        //                button.Click += ClickRepeatButton;
+        //            }
 
-                        continue;
-                    }
+        //            SetConstName(data, button);
 
-                    if (data.KeyCode is VirtualKeyShort.LSHIFT)
-                    {
-                        button = new Button()//ToDo: with shift
-                        {
-                            Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-                            Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-                            Focusable = false,
-                            Content = TranslateKeyCode(data.KeyCode.Value)
-                        };
+        //            SetKeyMetadata(button, data);
 
-                        button.Click += ClickShiftButton;
-                    }
-                    else
-                    {
-                        button = new RepeatButton()
-                        {
-                            Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-                            Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-                            Focusable = false,
-                            Content = TranslateKeyCode(data.KeyCode.Value)
-                            //Margin = _buttonMargen
-                        };
+        //            panel.Children.Add(button);
 
-                        button.Click += ClickRepeatButton;
-                    }
+        //            position++;
+        //        }
 
-                    SetConstName(data, button);
+        //        _keyBoard.Children.Add(panel);
 
-                    SetKeyMetadata(button, data);
-
-                    panel.Children.Add(button);
-
-                    position++;
-                }
-
-                _keyBoard.Children.Add(panel);
-
-                Grid.SetRow(panel, i);
-            }
-        }
+        //        Grid.SetRow(panel, i);
+        //    }
+        //}
 
         private void GenerateMetadata() 
         {
@@ -322,68 +303,68 @@ namespace VirtualKeyboard
             };
         }
 
-        private UIElement CreateUniqueButtons(KeyMetadata data, int position) => position switch
-        {
-            0 => new Button()
-            {
-                Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-                Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-                //Margin = _buttonMargen,
-                Focusable = false,
-                Content = "&123"
-            },
-            4 => new ComboBox()
-            {
-                Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-                Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-                //Margin = _buttonMargen,
-                Focusable = false
-            },
-            _ => null
-        };
+        //private UIElement CreateUniqueButtons(KeyMetadata data, int position) => position switch
+        //{
+        //    0 => new Button()
+        //    {
+        //        Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
+        //        Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
+        //        //Margin = _buttonMargen,
+        //        Focusable = false,
+        //        Content = "&123"
+        //    },
+        //    4 => new ComboBox()
+        //    {
+        //        Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
+        //        Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
+        //        //Margin = _buttonMargen,
+        //        Focusable = false
+        //    },
+        //    _ => null
+        //};
 
-        private void GenerateRowAndColumn(Grid field, int rowCount, int columnCount) 
-        {
-            for (int i = 0; i < rowCount; i++)
-            {
-                field.RowDefinitions.Add(new RowDefinition());
-            }
+        //private void GenerateRowAndColumn(Grid field, int rowCount, int columnCount) 
+        //{
+        //    for (int i = 0; i < rowCount; i++)
+        //    {
+        //        field.RowDefinitions.Add(new RowDefinition());
+        //    }
 
-            for (int i = 0; i < columnCount; i++)
-            {
-                field.ColumnDefinitions.Add(new ColumnDefinition());
-            }
-        }
+        //    for (int i = 0; i < columnCount; i++)
+        //    {
+        //        field.ColumnDefinitions.Add(new ColumnDefinition());
+        //    }
+        //}
 
-        private void SetConstName(KeyMetadata data, ButtonBase button) 
-        {
-            switch (data.KeyCode.Value)
-            {
-                case VirtualKeyShort.LSHIFT:
-                    button.Content = "shift";
-                    return;
-                case VirtualKeyShort.TAB:
-                    button.Content = "tab";
-                    return;
-                case VirtualKeyShort.RETURN:
-                    button.Content = "enter";
-                    return;
-                case VirtualKeyShort.BACK:
-                    button.Content = "back";
-                    return;
-                case VirtualKeyShort.SPACE:
-                    button.Content = "space";
-                    return;
-                case VirtualKeyShort.LEFT:
-                    button.Content = "<";
-                    return;
-                case VirtualKeyShort.RIGHT:
-                    button.Content = ">";
-                    return;
-                default:
-                    return;
-            }
-        }
+        //private void SetConstName(KeyMetadata data, ButtonBase button) 
+        //{
+        //    switch (data.KeyCode.Value)
+        //    {
+        //        case VirtualKeyShort.LSHIFT:
+        //            button.Content = "shift";
+        //            return;
+        //        case VirtualKeyShort.TAB:
+        //            button.Content = "tab";
+        //            return;
+        //        case VirtualKeyShort.RETURN:
+        //            button.Content = "enter";
+        //            return;
+        //        case VirtualKeyShort.BACK:
+        //            button.Content = "back";
+        //            return;
+        //        case VirtualKeyShort.SPACE:
+        //            button.Content = "space";
+        //            return;
+        //        case VirtualKeyShort.LEFT:
+        //            button.Content = "<";
+        //            return;
+        //        case VirtualKeyShort.RIGHT:
+        //            button.Content = ">";
+        //            return;
+        //        default:
+        //            return;
+        //    }
+        //}
 
         private void ClickRepeatButton(object sender, RoutedEventArgs e) 
         {
@@ -438,11 +419,11 @@ namespace VirtualKeyboard
             SendInput(2, inputs, INPUT.Size);
         }
 
-        private void SetRowColumnPosition(UIElement element, int rowPosition, int columnPosition) 
-        {
-            Grid.SetColumn(element, columnPosition);
-            Grid.SetRow(element, rowPosition);            
-        }
+        //private void SetRowColumnPosition(UIElement element, int rowPosition, int columnPosition) 
+        //{
+        //    Grid.SetColumn(element, columnPosition);
+        //    Grid.SetRow(element, rowPosition);            
+        //}
 
         private string TranslateKeyCode(VirtualKeyShort keyCode) 
         {
@@ -473,10 +454,9 @@ namespace VirtualKeyboard
                 {
                     KeyViewModel keyData = new()
                     {
-                        Height = DEFAULT_BUTTON_HEIGHT,
-                        Width = DEFAULT_BUTTON_WIDTH,
                         KeyData = data
                     };
+
 
                     keyData.Name = data switch
                     {
@@ -489,7 +469,7 @@ namespace VirtualKeyboard
                         { KeyCode: VirtualKeyShort.RIGHT } => ">", 
                         { IsLayoutSwitch: true } => "EU",
                         { Is: true } => "&123",
-                        _ => TranslateKeyCode(data.KeyCode.Value)
+                        _ => TranslateKeyCode(data.KeyCode.Value).ToLower()
                     };
 
                     keysData.Add(keyData);

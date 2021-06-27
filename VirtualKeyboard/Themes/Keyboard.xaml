@@ -5,8 +5,6 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type board:Keyboard}">
-                    <!--<Grid x:Name="PART_boardContainer"
-                          Background="{TemplateBinding Background}"/>-->
                     <ItemsControl ItemsSource="{TemplateBinding KeysData}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -16,10 +14,11 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <RepeatButton Content="{Binding Name}"
-                                              Width="{Binding Width}"
-                                              Height="{Binding Height}"
+                                              Width="0"
+                                              Height="0"
                                               board:Keyboard.KeyMetadata="{Binding KeyData}"
                                               Focusable="False"
+                                              Margin="3"
                                               Name="key"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

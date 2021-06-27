@@ -59,16 +59,14 @@ namespace VirtualKeyboard
 
             foreach (KeyValuePair<int, List<FrameworkElement>> pair in _keyboardElements)
             {
-                Scale widthScale = GetKeysWidthScale(availableSize.Width, rowIndex);
+                double[] widthScales = GetKeysWidthScale(availableSize.Width, rowIndex);
 
                 for (int i = 0; i < pair.Value.Count; i++)
                 {
-                    KeyMetadata data = Keyboard.GetKeyMetadata(pair.Value[i]);
+                    Size keySize = GetKeySize(widthScales[i], _keysHeightScales[i], pair.Value[i]);
 
-                    Size keySize = GetKeySize(data, widthScale, _keysHeightScales[i], pair.Value[i]);
-
-                    pair.Value[i].Height = keySize.Height;
-                    pair.Value[i].Width = keySize.Width;
+                    pair.Value[i].Height = keySize.Height - pair.Value[i].Margin.Top - pair.Value[i].Margin.Bottom;
+                    pair.Value[i].Width = keySize.Width - pair.Value[i].Margin.Left - pair.Value[i].Margin.Right;
 
                     pair.Value[i].Measure(keySize);
                 }
@@ -103,8 +101,8 @@ namespace VirtualKeyboard
                         location: new Point(leftOffSet, topOffSets[i]),
                         size: pair.Value[i].DesiredSize));
 
-                    topOffSets[i] += pair.Value[i].Height;
-                    leftOffSet += pair.Value[i].Width;
+                    topOffSets[i] += pair.Value[i].Height + pair.Value[i].Margin.Top + pair.Value[i].Margin.Bottom;
+                    leftOffSet += pair.Value[i].Width + pair.Value[i].Margin.Left + pair.Value[i].Margin.Right;
                 }
 
                 leftOffSet = 0;
@@ -170,7 +168,7 @@ namespace VirtualKeyboard
             }
         }
 
-        private Scale GetKeysHeightScale(double keyboardPanelHeight, int columnIndex)
+        private Scale GetKeysHeightScale(double keyboardPanelHeight, int columnIndex)//ToDo: refactoring
         {
             double keysHeight = _keyboardElements.Sum(key =>
             {
@@ -198,41 +196,30 @@ namespace VirtualKeyboard
             return scale;
         }
 
-        private Scale GetKeysWidthScale(double keyboardPanelWidth, int rowIndex) 
+        private double[] GetKeysWidthScale(double keyboardPanelWidth, int rowIndex) 
         {
-            double keysWidth = _keyboardElements[rowIndex].Sum(key =>
+            double keysWidthScale = _keyboardElements[rowIndex].Sum(key =>
             {
-                return key.Width;
+                KeyMetadata keyData = Keyboard.GetKeyMetadata(key);
+
+                return keyData.WidthScale;
             });
 
-            Scale scale = new();
+            double[] scales = new double[_keyboardElements[rowIndex].Count];
 
-            if (keyboardPanelWidth > keysWidth)
+            for (int i = 0; i < _keyboardElements[rowIndex].Count; i++)
             {
-                scale.IsPositive = true;
-                scale.Number = (keyboardPanelWidth - keysWidth) / _keyboardElements[rowIndex].Count;
-            }
-            else
-            {
-                scale.IsPositive = false;
-                scale.Number = (keysWidth - keyboardPanelWidth) / _keyboardElements[rowIndex].Count;
+                KeyMetadata keyData = Keyboard.GetKeyMetadata(_keyboardElements[rowIndex][i]);
+
+                scales[i] = keyData.WidthScale * keyboardPanelWidth / keysWidthScale;
             }
 
-            return scale;
+            return scales;
         }
 
-        private Size GetKeySize(KeyMetadata data, Scale widthScale, Scale heightScale, FrameworkElement key) 
+        private Size GetKeySize(double widthScale, Scale heightScale, FrameworkElement key) 
         {
-            Size keySize = new(key.Width, key.Height);
-
-            if (widthScale.IsPositive)
-            {
-                keySize.Width += widthScale.Number;
-            }
-            else 
-            {
-                keySize.Width -= widthScale.Number;
-            }
+            Size keySize = new(widthScale, key.Height);
 
             if (heightScale.IsPositive)
             {
