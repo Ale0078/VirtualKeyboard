@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-
+using System.Windows.Media;
 using VirtualKeyboard.Data;
 
 namespace VirtualKeyboard
@@ -13,7 +13,7 @@ namespace VirtualKeyboard
     public class KeyboardPanel : Panel
     {
         private SortedDictionary<int, List<FrameworkElement>> _keyboardElements;
-        private List<Scale> _keysHeightScales;
+        private Dictionary<int, Scale> _keysHeightScales;
         private bool _isChildChanged;
         private bool _isStart;
 
@@ -21,13 +21,13 @@ namespace VirtualKeyboard
         {
             FocusableProperty.OverrideMetadata(
                 forType: typeof(KeyboardPanel),
-                typeMetadata: new PropertyMetadata(false));
+                typeMetadata: new FrameworkPropertyMetadata(false));
         }
 
         public KeyboardPanel()
         {           
             _keyboardElements = new SortedDictionary<int, List<FrameworkElement>>();
-            _keysHeightScales = new List<Scale>();
+            _keysHeightScales = new Dictionary<int, Scale>();
             _isStart = true;
         }
 
@@ -47,12 +47,13 @@ namespace VirtualKeyboard
 
             if (_isChildChanged || _isStart)
             {
-                SetKeyboardElements();
-                SetKeysHeightScales(availableSize.Height);
+                SetKeyboardElements();                
 
                 _isStart = false;
                 _isChildChanged = false;
             }
+
+            SetKeysHeightScales(availableSize.Height);
 
             int rowIndex = 0;
 
@@ -65,6 +66,9 @@ namespace VirtualKeyboard
                     KeyMetadata data = Keyboard.GetKeyMetadata(pair.Value[i]);
 
                     Size keySize = GetKeySize(data, widthScale, _keysHeightScales[i], pair.Value[i]);
+
+                    pair.Value[i].Height = keySize.Height;
+                    pair.Value[i].Width = keySize.Width;
 
                     pair.Value[i].Measure(keySize);
                 }
@@ -83,18 +87,16 @@ namespace VirtualKeyboard
             }
 
             double leftOffSet = 0;
-            //double topOffSet = 0;
 
             List<double> topOffSets = new(_keyboardElements.Max(pair => pair.Value.Count));
 
+            for (int i = 0; i < topOffSets.Capacity; i++)
+            {
+                topOffSets.Add(0.0d);
+            }
+
             foreach (KeyValuePair<int, List<FrameworkElement>> pair in _keyboardElements)
             {
-                //foreach (FrameworkElement key in pair.Value)
-                //{
-                //    key.Arrange(new Rect(new Point(leftOffSet, topOffSet), key.DesiredSize));
-
-                //    leftOffSet += key.Width;
-                //}
                 for (int i = 0; i < pair.Value.Count; i++)
                 {
                     pair.Value[i].Arrange(new Rect(
@@ -115,7 +117,16 @@ namespace VirtualKeyboard
         {
             foreach (FrameworkElement key in Children)
             {
-                KeyMetadata data = Keyboard.GetKeyMetadata(key);
+                FrameworkElement bufferKey = key;
+
+                if (key is ContentPresenter)
+                {
+                    ((ContentPresenter)key).ApplyTemplate();
+
+                    bufferKey = ((ContentPresenter)key).ContentTemplate.FindName("key", key) as FrameworkElement;
+                }                
+
+                KeyMetadata data = Keyboard.GetKeyMetadata(bufferKey);
 
                 if (!_keyboardElements.ContainsKey(data.Row))
                 {
@@ -139,7 +150,10 @@ namespace VirtualKeyboard
                     _keyboardElements[data.Row].Remove(repeatedKey);
                 }
 
-                _keyboardElements[data.Row].Add(key);
+                bufferKey.Height *= data.HeightScale;
+                bufferKey.Width *= data.WidthScale;
+
+                _keyboardElements[data.Row].Add(bufferKey);
             }
 
             foreach (KeyValuePair<int, List<FrameworkElement>> pair in _keyboardElements)
@@ -152,17 +166,20 @@ namespace VirtualKeyboard
         {
             for (int i = 0; i < _keyboardElements.First().Value.Count; i++)
             {
-                _keysHeightScales.Add(GetKeysHeightScale(keyboardPanelHeight, i));
+                _keysHeightScales[i] = GetKeysHeightScale(keyboardPanelHeight, i);
             }
         }
 
-        private Scale GetKeysHeightScale(double keyboardPanelHeight, int columnIndex) 
+        private Scale GetKeysHeightScale(double keyboardPanelHeight, int columnIndex)
         {
-            double keysHeight = _keyboardElements.Sum(pair =>
+            double keysHeight = _keyboardElements.Sum(key =>
             {
-                KeyMetadata data = Keyboard.GetKeyMetadata(pair.Value[columnIndex]);
+                if (key.Value.Count <= columnIndex)
+                {
+                    return key.Value[key.Value.Count - 1].Height;
+                }
 
-                return pair.Value[columnIndex].Height * data.HeightScale;
+                return key.Value[columnIndex].Height;
             });
 
             Scale scale = new();
@@ -185,9 +202,7 @@ namespace VirtualKeyboard
         {
             double keysWidth = _keyboardElements[rowIndex].Sum(key =>
             {
-                KeyMetadata data = Keyboard.GetKeyMetadata(key);
-
-                return key.Width * data.WidthScale;
+                return key.Width;
             });
 
             Scale scale = new();
@@ -208,9 +223,7 @@ namespace VirtualKeyboard
 
         private Size GetKeySize(KeyMetadata data, Scale widthScale, Scale heightScale, FrameworkElement key) 
         {
-            Size keySize = new(
-                width: key.Width * data.WidthScale,
-                height: key.Height * data.HeightScale);
+            Size keySize = new(key.Width, key.Height);
 
             if (widthScale.IsPositive)
             {
@@ -223,11 +236,11 @@ namespace VirtualKeyboard
 
             if (heightScale.IsPositive)
             {
-                keySize.Width += heightScale.Number;
+                keySize.Height += heightScale.Number;
             }
             else
             {
-                keySize.Width -= heightScale.Number;
+                keySize.Height -= heightScale.Number;
             }
 
             return keySize;

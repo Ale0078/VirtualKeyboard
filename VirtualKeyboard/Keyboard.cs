@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,29 +14,31 @@ using static VirtualKeyboard.Functions.User32;
 using VirtualKeyboard.Enums;
 using VirtualKeyboard.Structs;
 using VirtualKeyboard.Data;
+using VirtualKeyboard.ViewModels;
 
 namespace VirtualKeyboard
 {
-    [TemplatePart(Name = BOARD_CONTAINER, Type = typeof(Grid))]
+    //[TemplatePart(Name = BOARD_CONTAINER, Type = typeof(Grid))]
     public class Keyboard : Control
     {
-        private const string BOARD_CONTAINER = "PART_boardContainer";
+        //private const string BOARD_CONTAINER = "PART_boardContainer";
 
         private const int NUMPAD_ROWS = 4;
         private const int NUMPAD_COLUMNS = 3;
         private const double DEFAULT_BUTTON_WIDTH = 60;//ToDo: Set Width to buttons from user
-        private const double DEFAULT_BUTTON_HEUGHT = 60;//ToDo: Set Height to buttons from user
+        private const double DEFAULT_BUTTON_HEIGHT = 60;//ToDo: Set Height to buttons from user
 
         private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
         private KeyMetadata[][] _keyBoardMetadatas;
 
-        private Grid _boardContainer;
+        //private Grid _boardContainer;
 
         private readonly Grid _numpad;
         private readonly Grid _keyBoard;
 
         public static readonly DependencyProperty HasNumpadProperty;
         public static readonly DependencyProperty HasKeyBoardProperty;
+        public static readonly DependencyProperty KeysDataProperty;
 
         public static readonly DependencyProperty ButtonMetadataProperty;
 
@@ -54,6 +57,12 @@ namespace VirtualKeyboard
                 propertyType: typeof(bool),
                 ownerType: typeof(Keyboard),
                 typeMetadata: new PropertyMetadata(false));//ToDo: switch to true
+
+            KeysDataProperty = DependencyProperty.Register(
+                name: nameof(KeysData),
+                propertyType: typeof(IEnumerable<KeyViewModel>),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(null));
 
             ButtonMetadataProperty = DependencyProperty.RegisterAttached(
                 name: "KeyMetadata",
@@ -77,6 +86,10 @@ namespace VirtualKeyboard
             GenerateMetadata();
             FillNumpad();
             FillKeyBoard();
+
+
+
+            KeysData = CreateKeysData();
         }
 
         public bool HasNumpad 
@@ -91,16 +104,22 @@ namespace VirtualKeyboard
             set => SetValue(HasKeyBoardProperty, value);
         }
 
+        public IEnumerable<KeyViewModel> KeysData 
+        {
+            get => (IEnumerable<KeyViewModel>)GetValue(KeysDataProperty);
+            set => SetValue(KeysDataProperty, value);
+        }
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
 
-            _boardContainer = GetTemplateChild(BOARD_CONTAINER) as Grid;
+            //_boardContainer = GetTemplateChild(BOARD_CONTAINER) as Grid;
 
 
-            GenerateRowAndColumn(_boardContainer, 0, 1);
-            Grid.SetColumn(_keyBoard, 0);
-            _boardContainer.Children.Add(_keyBoard);
+            //GenerateRowAndColumn(_boardContainer, 0, 1);
+            //Grid.SetColumn(_keyBoard, 0);
+            //_boardContainer.Children.Add(_keyBoard);
             //Grid.SetColumn(_numpad, 1);
             //_boardContainer.Children.Add(_numpad);//ToDo: do it after changing hasnumap or haskeyboard property
         }
@@ -202,7 +221,7 @@ namespace VirtualKeyboard
                     {
                         button = new Button()//ToDo: with shift
                         {
-                            Height = DEFAULT_BUTTON_HEUGHT * data.HeightScale,
+                            Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
                             Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
                             Focusable = false,
                             Content = TranslateKeyCode(data.KeyCode.Value)
@@ -214,7 +233,7 @@ namespace VirtualKeyboard
                     {
                         button = new RepeatButton()
                         {
-                            Height = DEFAULT_BUTTON_HEUGHT * data.HeightScale,
+                            Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
                             Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
                             Focusable = false,
                             Content = TranslateKeyCode(data.KeyCode.Value)
@@ -245,61 +264,61 @@ namespace VirtualKeyboard
 
             _keyBoardMetadatas[0] = new KeyMetadata[]
             {
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Q },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_W },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_E },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_R },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_T },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Y },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_U },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_I },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_O },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_P },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_4 },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_6 },
-                new KeyMetadata { KeyCode = VirtualKeyShort.BACK }
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Q, Row = 0, Column = 0 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_W, Row = 0, Column = 1 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_E, Row = 0, Column = 2 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_R, Row = 0, Column = 3 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_T, Row = 0, Column = 4 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Y, Row = 0, Column = 5 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_U, Row = 0, Column = 6 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_I, Row = 0, Column = 7 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_O, Row = 0, Column = 8 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_P, Row = 0, Column = 9 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_4, Row = 0, Column = 10 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_6, Row = 0, Column = 11 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.BACK, Row = 0, Column = 12 }
             };
 
             _keyBoardMetadatas[1] = new KeyMetadata[]
             {
-                new KeyMetadata { KeyCode = VirtualKeyShort.TAB },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_A },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_S },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_D },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_F },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_G },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_H },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_J },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_K },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_L },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_1 },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_7 },
-                new KeyMetadata { KeyCode = VirtualKeyShort.RETURN }
+                new KeyMetadata { KeyCode = VirtualKeyShort.TAB, Row = 1, Column = 0 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_A, Row = 1, Column = 1 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_S, Row = 1, Column = 2 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_D, Row = 1, Column = 3 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_F, Row = 1, Column = 4 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_G, Row = 1, Column = 5 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_H, Row = 1, Column = 6 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_J, Row = 1, Column = 7 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_K, Row = 1, Column = 8 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_L, Row = 1, Column = 9 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_1, Row = 1, Column = 10 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_7, Row = 1, Column = 11 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.RETURN, Row = 1, Column = 12 }
             };
 
             _keyBoardMetadatas[2] = new KeyMetadata[]
             {
-                new KeyMetadata { KeyCode = VirtualKeyShort.LSHIFT, WidthScale = 2.0d },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Z },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_X },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_C },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_V },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_B },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_N },
-                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_M },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_COMMA },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_PERIOD },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_3 },
-                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_2 }
+                new KeyMetadata { KeyCode = VirtualKeyShort.LSHIFT, WidthScale = 2.0d, Row = 2, Column = 0 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_Z, Row = 2, Column = 1 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_X, Row = 2, Column = 2 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_C, Row = 2, Column = 3 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_V, Row = 2, Column = 4 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_B, Row = 2, Column = 5 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_N, Row = 2, Column = 6 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.KEY_M, Row = 2, Column = 7 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_COMMA, Row = 2, Column = 8 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_PERIOD, Row = 2, Column = 9 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_3, Row = 2, Column = 10 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.OEM_2, Row = 2, Column = 11 }
             };
 
             _keyBoardMetadatas[3] = new KeyMetadata[]
             {
-                new KeyMetadata(),
-                new KeyMetadata { KeyCode = VirtualKeyShort.SPACE, WidthScale = 9.0d },
-                new KeyMetadata { KeyCode = VirtualKeyShort.LEFT },
-                new KeyMetadata { KeyCode = VirtualKeyShort.RIGHT },
-                new KeyMetadata()
+                new KeyMetadata { Is = true, Row = 3, Column = 0 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.SPACE, WidthScale = 9.0d, Row = 3, Column = 1 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.LEFT, Row = 3, Column = 2 },
+                new KeyMetadata { KeyCode = VirtualKeyShort.RIGHT, Row = 3, Column = 3 },
+                new KeyMetadata { IsLayoutSwitch = true, Row = 3, Column = 4 }
             };
         }
 
@@ -307,7 +326,7 @@ namespace VirtualKeyboard
         {
             0 => new Button()
             {
-                Height = DEFAULT_BUTTON_HEUGHT * data.HeightScale,
+                Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
                 Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
                 //Margin = _buttonMargen,
                 Focusable = false,
@@ -315,7 +334,7 @@ namespace VirtualKeyboard
             },
             4 => new ComboBox()
             {
-                Height = DEFAULT_BUTTON_HEUGHT * data.HeightScale,
+                Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
                 Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
                 //Margin = _buttonMargen,
                 Focusable = false
@@ -438,6 +457,46 @@ namespace VirtualKeyboard
             ToUnicodeEx((uint)keyCode, 0, buffer, builder, 2, 0, hkl);
 
             return builder.ToString();
+        }
+
+
+
+
+
+        private IEnumerable<KeyViewModel> CreateKeysData() 
+        {
+            ObservableCollection<KeyViewModel> keysData = new();
+
+            foreach (KeyMetadata[] metadatas in _keyBoardMetadatas)
+            {
+                foreach (KeyMetadata data in metadatas)
+                {
+                    KeyViewModel keyData = new()
+                    {
+                        Height = DEFAULT_BUTTON_HEIGHT,
+                        Width = DEFAULT_BUTTON_WIDTH,
+                        KeyData = data
+                    };
+
+                    keyData.Name = data switch
+                    {
+                        { KeyCode: VirtualKeyShort.LSHIFT } => "shift",
+                        { KeyCode: VirtualKeyShort.TAB } => "tab",
+                        { KeyCode: VirtualKeyShort.RETURN } => "enter",
+                        { KeyCode: VirtualKeyShort.BACK } => "back",
+                        { KeyCode: VirtualKeyShort.SPACE } => "space",
+                        { KeyCode: VirtualKeyShort.LEFT } => "<",
+                        { KeyCode: VirtualKeyShort.RIGHT } => ">", 
+                        { IsLayoutSwitch: true } => "EU",
+                        { Is: true } => "&123",
+                        _ => TranslateKeyCode(data.KeyCode.Value)
+                    };
+
+                    keysData.Add(keyData);
+                }
+            }
+
+            return keysData;
         }
     }
 }
