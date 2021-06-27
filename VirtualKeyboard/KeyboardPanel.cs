@@ -17,6 +17,13 @@ namespace VirtualKeyboard
         private bool _isChildChanged;
         private bool _isStart;
 
+        static KeyboardPanel() 
+        {
+            FocusableProperty.OverrideMetadata(
+                forType: typeof(KeyboardPanel),
+                typeMetadata: new PropertyMetadata(false));
+        }
+
         public KeyboardPanel()
         {           
             _keyboardElements = new SortedDictionary<int, List<FrameworkElement>>();

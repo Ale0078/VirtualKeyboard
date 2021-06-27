@@ -1,6 +1,6 @@
 ﻿namespace VirtualKeyboard.Enums
 {
-    internal enum VirtualKeyShort : short
+    public enum VirtualKeyShort : short
     {
         LBUTTON = 0x01,
         RBUTTON = 0x02,

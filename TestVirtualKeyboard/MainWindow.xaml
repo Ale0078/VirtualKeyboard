@@ -17,7 +17,7 @@
         <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"/>
         <TextBox Grid.Row="0" Background="Green" Height="20" Width="300" HorizontalAlignment="Right"/>
 
-        <key:KeyboardPanel></key:KeyboardPanel>
+        <!--<key:KeyboardPanel></key:KeyboardPanel>-->
 
         <key:Keyboard Grid.Row="1"/>
     </Grid>

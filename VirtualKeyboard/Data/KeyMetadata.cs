@@ -2,7 +2,7 @@
 
 namespace VirtualKeyboard.Data
 {
-    internal class KeyMetadata
+    public class KeyMetadata
     {
         private const double DEFAULT_SCALE = 1.0d;
 
