@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Globalization;
+using System.Runtime.InteropServices;
 
 using static VirtualKeyboard.Functions.User32;
 
@@ -15,6 +17,7 @@ using VirtualKeyboard.Enums;
 using VirtualKeyboard.Structs;
 using VirtualKeyboard.Data;
 using VirtualKeyboard.ViewModels;
+using VirtualKeyboard.Helpers;
 
 namespace VirtualKeyboard
 {
@@ -27,19 +30,24 @@ namespace VirtualKeyboard
 
         //private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
         private KeyMetadata[][] _keyBoardMetadatas;
-
-        //private readonly Grid _numpad;
-        //private readonly Grid _keyBoard;
-
+        
         public static readonly DependencyProperty HasNumpadProperty;
         public static readonly DependencyProperty HasKeyBoardProperty;
+        public static readonly DependencyProperty LanguagesIdProperty;
+        public static readonly DependencyProperty CurrentLanguageProperty;
         public static readonly DependencyProperty KeysDataProperty;
+        public static readonly DependencyProperty KeyClickProperty;
+        public static readonly DependencyProperty LShiftKeyCheckedProperty;
+        public static readonly DependencyProperty LShiftKeyUncheckedProperty;
+        public static readonly DependencyProperty SelectLenguageProperty;
 
         public static readonly DependencyProperty ButtonMetadataProperty;
 
         static Keyboard()
         {
-            MouseLeftButtonDownEvent.AddOwner(typeof(Keyboard));
+            FocusableProperty.OverrideMetadata(
+                forType: typeof(Keyboard),
+                typeMetadata: new FrameworkPropertyMetadata(false));
 
             HasNumpadProperty = DependencyProperty.Register(
                 name: nameof(HasNumpad),
@@ -51,13 +59,47 @@ namespace VirtualKeyboard
                 name: nameof(HasKeyBoard),
                 propertyType: typeof(bool),
                 ownerType: typeof(Keyboard),
-                typeMetadata: new PropertyMetadata(false));//ToDo: switch to true
+                typeMetadata: new PropertyMetadata(true));//ToDo: switch to true
+
+            LanguagesIdProperty = DependencyProperty.Register(
+                name: nameof(LanguagesId),
+                propertyType: typeof(IEnumerable<CultureInfo>),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(CreateCurrendLenguagesId()));
+
+            CurrentLanguageProperty = DependencyProperty.Register(
+                name: nameof(CurrentLanguage),
+                propertyType: typeof(CultureInfo),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(GetCurrentLanguage()));
 
             KeysDataProperty = DependencyProperty.Register(
                 name: nameof(KeysData),
                 propertyType: typeof(IEnumerable<KeyViewModel>),
+                ownerType: typeof(Keyboard));
+
+            KeyClickProperty = DependencyProperty.Register(
+                name: nameof(KeyClick),
+                propertyType: typeof(ICommand),
                 ownerType: typeof(Keyboard),
-                typeMetadata: new PropertyMetadata(null));
+                typeMetadata: new PropertyMetadata(CreateDefaultKeyClickCommand()));
+
+            LShiftKeyCheckedProperty = DependencyProperty.Register(
+                name: nameof(LShiftKeyChecked),
+                propertyType: typeof(ICommand),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(CreateDefaultLShiftKeyCheckedCommand()));
+            
+            LShiftKeyUncheckedProperty = DependencyProperty.Register(
+                name: nameof(LShiftKeyUnchecked),
+                propertyType: typeof(ICommand),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(CreateDefaultLShiftKeyUncheckedCommand()));
+
+            SelectLenguageProperty = DependencyProperty.Register(
+                name: nameof(SelectLenguage),
+                propertyType: typeof(ICommand),
+                ownerType: typeof(Keyboard));
 
             ButtonMetadataProperty = DependencyProperty.RegisterAttached(
                 name: "KeyMetadata",
@@ -73,18 +115,10 @@ namespace VirtualKeyboard
 
         public Keyboard()
         {
-            Focusable = false;
-
-            //_numpad = new Grid();
-            //_keyBoard = new Grid();
-
             GenerateMetadata();
-            //FillNumpad();
-            //FillKeyBoard();
-
-
 
             KeysData = CreateKeysData();
+            SelectLenguage = CreateDefaultSelectLenguageCommand();
         }
 
         public bool HasNumpad 
@@ -99,147 +133,73 @@ namespace VirtualKeyboard
             set => SetValue(HasKeyBoardProperty, value);
         }
 
+        public CultureInfo CurrentLanguage 
+        {
+            get => (CultureInfo)GetValue(CurrentLanguageProperty);
+            set => SetValue(CurrentLanguageProperty, value);
+        }
+
+        public IEnumerable<CultureInfo> LanguagesId
+        {
+            get => (IEnumerable<CultureInfo>)GetValue(LanguagesIdProperty);
+            set => SetValue(LanguagesIdProperty, value);
+        }
+
         public IEnumerable<KeyViewModel> KeysData 
         {
             get => (IEnumerable<KeyViewModel>)GetValue(KeysDataProperty);
             set => SetValue(KeysDataProperty, value);
         }
 
-        //private void FillNumpad() //ToDo: Add margin to buttons
-        //{
-        //    GenerateRowAndColumn(_numpad, NUMPAD_ROWS, NUMPAD_COLUMNS);
+        public ICommand KeyClick
+        {
+            get => (ICommand)GetValue(KeyClickProperty);
+            set => SetValue(KeyClickProperty, value);
+        }
 
-        //    SetZeroPointToNumpad();
+        public ICommand LShiftKeyChecked 
+        {
+            get => (ICommand)GetValue(LShiftKeyCheckedProperty);
+            set => SetValue(LShiftKeyCheckedProperty, value);
+        }
+        
+        public ICommand LShiftKeyUnchecked 
+        {
+            get => (ICommand)GetValue(LShiftKeyUncheckedProperty);
+            set => SetValue(LShiftKeyUncheckedProperty, value);
+        }
 
-        //    uint number = 0x31;
+        public ICommand SelectLenguage 
+        {
+            get => (ICommand)GetValue(SelectLenguageProperty);
+            set => SetValue(SelectLenguageProperty, value);
+        }
 
-        //    for (int i = _numpad.RowDefinitions.Count - 2; i >= 0; i--)
-        //    {
-        //        for (int j = 0; j < _numpad.ColumnDefinitions.Count; j++)
-        //        {
-        //            RepeatButton numberButton = new()
-        //            {
-        //                Content = Convert.ToChar(number),
-        //                Margin = _buttonMargen,
-        //                Focusable = false
-        //            };
+        private static string TranslateKeyCode(VirtualKeyShort keyCode, int? languageId = null) 
+        {
+            StringBuilder builder = new();
 
-        //            SetKeyMetadata(numberButton, new KeyMetadata { KeyCode = (VirtualKeyShort)number });
+            byte[] buffer = new byte[255];
+            
+            GetKeyboardState(buffer);
 
-        //            numberButton.Click += ClickRepeatButton;
+            IntPtr hkl;
 
-        //            _numpad.Children.Add(numberButton);
+            if (languageId is null)
+            {
+                hkl = GetKeyboardLayout(0);
+            }
+            else
+            {
+                hkl = (IntPtr)languageId.Value;
+            }
 
-        //            SetRowColumnPosition(numberButton, i, j);
+            ToUnicodeEx((uint)keyCode, 0, buffer, builder, 3, 0, hkl);
 
-        //            number++;
-        //        }
-        //    }
-        //}
+            return builder.ToString();
+        }
 
-        //private void SetZeroPointToNumpad() 
-        //{
-        //    RepeatButton point = new()
-        //    {
-        //        Content = '.',
-        //        Margin = _buttonMargen,
-        //        Focusable = false
-        //    };
-
-        //    SetKeyMetadata(point, new KeyMetadata { KeyCode = VirtualKeyShort.DECIMAL });//ToDo: point
-
-        //    point.Click += ClickRepeatButton;
-
-        //    SetRowColumnPosition(point, _numpad.RowDefinitions.Count - 1, _numpad.ColumnDefinitions.Count - 1);
-
-        //    _numpad.Children.Add(point);
-
-        //    RepeatButton zero = new()
-        //    {
-        //        Content = '0',
-        //        Margin = _buttonMargen,
-        //        Focusable = false
-        //    };
-
-        //    SetKeyMetadata(zero, new KeyMetadata { KeyCode = VirtualKeyShort.KEY_0 });
-
-        //    zero.Click += ClickRepeatButton;
-
-        //    Grid.SetColumnSpan(zero, 2);
-        //    Grid.SetRow(zero, _numpad.RowDefinitions.Count - 1);
-
-        //    _numpad.Children.Add(zero);
-        //}
-
-        //private void FillKeyBoard() 
-        //{
-        //    GenerateRowAndColumn(_keyBoard, NUMPAD_ROWS, 0);
-
-        //    for (int i = 0; i < NUMPAD_ROWS; i++)
-        //    {
-        //        StackPanel panel = new StackPanel
-        //        {
-        //            Orientation = Orientation.Horizontal
-        //        };
-
-        //        int position = 0;
-        //        ButtonBase button;
-
-        //        foreach (KeyMetadata data in _keyBoardMetadatas[i])
-        //        {
-        //            if (data.KeyCode is null)
-        //            {
-        //                UIElement element = CreateUniqueButtons(data, position);//ToDo: set handler to combobox and button
-
-        //                panel.Children.Add(element);
-
-        //                position++;
-
-        //                continue;
-        //            }
-
-        //            if (data.KeyCode is VirtualKeyShort.LSHIFT)
-        //            {
-        //                button = new Button()//ToDo: with shift
-        //                {
-        //                    Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-        //                    Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-        //                    Focusable = false,
-        //                    Content = TranslateKeyCode(data.KeyCode.Value)
-        //                };
-
-        //                button.Click += ClickShiftButton;
-        //            }
-        //            else
-        //            {
-        //                button = new RepeatButton()
-        //                {
-        //                    Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-        //                    Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-        //                    Focusable = false,
-        //                    Content = TranslateKeyCode(data.KeyCode.Value)
-        //                    //Margin = _buttonMargen
-        //                };
-
-        //                button.Click += ClickRepeatButton;
-        //            }
-
-        //            SetConstName(data, button);
-
-        //            SetKeyMetadata(button, data);
-
-        //            panel.Children.Add(button);
-
-        //            position++;
-        //        }
-
-        //        _keyBoard.Children.Add(panel);
-
-        //        Grid.SetRow(panel, i);
-        //    }
-        //}
-
-        private void GenerateMetadata() 
+        private void GenerateMetadata()
         {
             _keyBoardMetadatas = new KeyMetadata[NUMPAD_ROWS][];
 
@@ -303,147 +263,6 @@ namespace VirtualKeyboard
             };
         }
 
-        //private UIElement CreateUniqueButtons(KeyMetadata data, int position) => position switch
-        //{
-        //    0 => new Button()
-        //    {
-        //        Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-        //        Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-        //        //Margin = _buttonMargen,
-        //        Focusable = false,
-        //        Content = "&123"
-        //    },
-        //    4 => new ComboBox()
-        //    {
-        //        Height = DEFAULT_BUTTON_HEIGHT * data.HeightScale,
-        //        Width = DEFAULT_BUTTON_WIDTH * data.WidthScale,
-        //        //Margin = _buttonMargen,
-        //        Focusable = false
-        //    },
-        //    _ => null
-        //};
-
-        //private void GenerateRowAndColumn(Grid field, int rowCount, int columnCount) 
-        //{
-        //    for (int i = 0; i < rowCount; i++)
-        //    {
-        //        field.RowDefinitions.Add(new RowDefinition());
-        //    }
-
-        //    for (int i = 0; i < columnCount; i++)
-        //    {
-        //        field.ColumnDefinitions.Add(new ColumnDefinition());
-        //    }
-        //}
-
-        //private void SetConstName(KeyMetadata data, ButtonBase button) 
-        //{
-        //    switch (data.KeyCode.Value)
-        //    {
-        //        case VirtualKeyShort.LSHIFT:
-        //            button.Content = "shift";
-        //            return;
-        //        case VirtualKeyShort.TAB:
-        //            button.Content = "tab";
-        //            return;
-        //        case VirtualKeyShort.RETURN:
-        //            button.Content = "enter";
-        //            return;
-        //        case VirtualKeyShort.BACK:
-        //            button.Content = "back";
-        //            return;
-        //        case VirtualKeyShort.SPACE:
-        //            button.Content = "space";
-        //            return;
-        //        case VirtualKeyShort.LEFT:
-        //            button.Content = "<";
-        //            return;
-        //        case VirtualKeyShort.RIGHT:
-        //            button.Content = ">";
-        //            return;
-        //        default:
-        //            return;
-        //    }
-        //}
-
-        private void ClickRepeatButton(object sender, RoutedEventArgs e) 
-        {
-            INPUT[] inputs = new INPUT[1];
-
-            KeyMetadata key = GetKeyMetadata(sender as DependencyObject);
-
-            inputs[0] = new INPUT()
-            {
-                type = (uint)InputEventType.INPUT_KEYBOARD,
-                U = new InputUnion()
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = key.KeyCode.Value
-                    }
-                }
-            };
-
-            SendInput(1, inputs, INPUT.Size);
-        }
-
-        private void ClickShiftButton(object sender, RoutedEventArgs e)
-        {
-            INPUT[] inputs = new INPUT[2];
-
-            inputs[0] = new INPUT()
-            {
-                type = (uint)InputEventType.INPUT_KEYBOARD,
-                U = new InputUnion()
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = VirtualKeyShort.CAPITAL
-                    }
-                }
-            };
-
-            inputs[1] = new INPUT()
-            {
-                type = (uint)InputEventType.INPUT_KEYBOARD,
-                U = new InputUnion()
-                {
-                    ki = new KEYBDINPUT
-                    {
-                        wVk = VirtualKeyShort.CAPITAL,
-                        dwFlags = KEYEVENTF.KEYUP
-                    }
-                }
-            };
-
-            SendInput(2, inputs, INPUT.Size);
-        }
-
-        //private void SetRowColumnPosition(UIElement element, int rowPosition, int columnPosition) 
-        //{
-        //    Grid.SetColumn(element, columnPosition);
-        //    Grid.SetRow(element, rowPosition);            
-        //}
-
-        private string TranslateKeyCode(VirtualKeyShort keyCode) 
-        {
-            StringBuilder builder = new();
-
-            byte[] buffer = new byte[255];
-
-            GetKeyboardState(buffer);
-
-            IntPtr hkl = GetKeyboardLayout(0);
-
-            ToUnicodeEx((uint)keyCode, 0, buffer, builder, 2, 0, hkl);
-
-            return builder.ToString();
-        }
-
-
-
-
-
         private IEnumerable<KeyViewModel> CreateKeysData() 
         {
             ObservableCollection<KeyViewModel> keysData = new();
@@ -478,5 +297,130 @@ namespace VirtualKeyboard
 
             return keysData;
         }
+
+        private static CultureInfo GetCurrentLanguage() =>
+            CultureInfo.GetCultureInfo((short)GetKeyboardLayout(0));
+
+        private static IEnumerable<CultureInfo> CreateCurrendLenguagesId() 
+        {
+            uint lenguageCount = GetKeyboardLayoutList(0, null);
+
+            IntPtr[] lenguages = new IntPtr[lenguageCount];
+
+            GetKeyboardLayoutList(lenguages.Length, lenguages);
+
+            ObservableCollection<CultureInfo> lenguagesId = new();
+
+            foreach (IntPtr id in lenguages)
+            {
+                lenguagesId.Add(CultureInfo.GetCultureInfo((short)id));
+            }
+
+            return lenguagesId;
+        }
+
+        private static ICommand CreateDefaultKeyClickCommand() =>
+            new RelayCommand(metadata =>
+            {
+                INPUT[] inputs = new INPUT[1];
+
+                inputs[0] = new INPUT()
+                {
+                    type = (uint)InputEventType.INPUT_KEYBOARD,
+                    U = new InputUnion()
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = ((KeyMetadata)metadata).KeyCode.Value
+                        }
+                    }
+                };
+
+                SendInput(1, inputs, INPUT.Size);
+            });
+
+        private static ICommand CreateDefaultLShiftKeyCheckedCommand() =>
+            new RelayCommand(keys =>
+            {
+                INPUT[] messages = new INPUT[1];
+
+                messages[0] = new INPUT
+                {
+                    type = (ushort)InputEventType.INPUT_KEYBOARD,
+                    U = new InputUnion
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = VirtualKeyShort.LSHIFT
+                        }
+                    }
+                };
+
+                SendInput(1, messages, INPUT.Size);
+
+                IEnumerable<KeyViewModel> keysReference = keys as IEnumerable<KeyViewModel>;
+
+                foreach (KeyViewModel key in keysReference)
+                {
+                    key.Name = key.Name.ToUpper();
+                }
+            });
+
+        private static ICommand CreateDefaultLShiftKeyUncheckedCommand() =>
+            new RelayCommand(keys =>
+            {
+                INPUT[] messages = new INPUT[1];
+
+                messages[0] = new INPUT
+                {
+                    type = (ushort)InputEventType.INPUT_KEYBOARD,
+                    U = new InputUnion
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = VirtualKeyShort.LSHIFT,
+                            dwFlags = KEYEVENTF.KEYUP
+                        }
+                    }
+                };
+
+                SendInput(1, messages, INPUT.Size);
+
+                IEnumerable<KeyViewModel> keysReference = keys as IEnumerable<KeyViewModel>;
+
+                foreach (KeyViewModel key in keysReference)
+                {
+                    key.Name = key.Name.ToLower();
+                }
+            });
+
+        private ICommand CreateDefaultSelectLenguageCommand() =>
+            new RelayCommand(lenguage =>
+            {
+                const int WM_INPUT_LANG_CHANGE_REQUEST = 0x0050;
+
+                PostMessage(
+                    hWnd: new HandleRef(null, GetForegroundWindow()),
+                    Msg: WM_INPUT_LANG_CHANGE_REQUEST,
+                    wParam: IntPtr.Zero, 
+                    lParam: (IntPtr)((CultureInfo)lenguage).KeyboardLayoutId);
+
+                foreach (KeyViewModel key in KeysData)
+                {
+                    key.Name = key.KeyData switch
+                    {
+                        { KeyCode: VirtualKeyShort.LSHIFT } => key.Name,
+                        { KeyCode: VirtualKeyShort.TAB } => key.Name,
+                        { KeyCode: VirtualKeyShort.RETURN } => key.Name,
+                        { KeyCode: VirtualKeyShort.BACK } => key.Name,
+                        { KeyCode: VirtualKeyShort.SPACE } => key.Name,
+                        { KeyCode: VirtualKeyShort.LEFT } => key.Name,
+                        { KeyCode: VirtualKeyShort.RIGHT } => key.Name,
+                        { IsLayoutSwitch: true } => key.Name,
+                        { Is: true } => key.Name,
+                        _ => TranslateKeyCode(key.KeyData.KeyCode.Value, ((CultureInfo)lenguage).KeyboardLayoutId).ToLower()
+                    };
+                }
+            });
     }
 }

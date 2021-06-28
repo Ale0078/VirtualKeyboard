@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -119,9 +116,9 @@ namespace VirtualKeyboard
 
                 if (key is ContentPresenter)
                 {
-                    ((ContentPresenter)key).ApplyTemplate();
+                    ((ContentPresenter)key).ApplyTemplate();                    
 
-                    bufferKey = ((ContentPresenter)key).ContentTemplate.FindName("key", key) as FrameworkElement;
+                    bufferKey = VisualTreeHelper.GetChild(key, 0) as FrameworkElement;
                 }                
 
                 KeyMetadata data = Keyboard.GetKeyMetadata(bufferKey);
@@ -232,7 +229,6 @@ namespace VirtualKeyboard
 
             return keySize;
         }
-
 
 
         private class KeyColumnComparer : IComparer<FrameworkElement>
