@@ -14,11 +14,19 @@ namespace VirtualKeyboard
         private bool _isChildChanged;
         private bool _isStart;
 
+        public static readonly DependencyProperty KeyMarginProperty;
+
         static KeyboardPanel() 
         {
             FocusableProperty.OverrideMetadata(
                 forType: typeof(KeyboardPanel),
                 typeMetadata: new FrameworkPropertyMetadata(false));
+
+            KeyMarginProperty = DependencyProperty.Register(
+                name: nameof(KeyMargin),
+                propertyType: typeof(Thickness),
+                ownerType: typeof(KeyboardPanel),
+                typeMetadata: new PropertyMetadata(new Thickness(3)));
         }
 
         public KeyboardPanel()
@@ -26,6 +34,12 @@ namespace VirtualKeyboard
             _keyboardElements = new SortedDictionary<int, List<FrameworkElement>>();
             _keysHeightScales = new Dictionary<int, Scale>();
             _isStart = true;
+        }
+
+        public Thickness KeyMargin 
+        {
+            get => (Thickness)GetValue(KeyMarginProperty);
+            set => SetValue(KeyMarginProperty, value);
         }
 
         protected override void OnVisualChildrenChanged(DependencyObject visualAdded, DependencyObject visualRemoved)
@@ -62,8 +76,23 @@ namespace VirtualKeyboard
                 {
                     Size keySize = GetKeySize(widthScales[i], _keysHeightScales[i], pair.Value[i]);
 
-                    pair.Value[i].Height = keySize.Height - pair.Value[i].Margin.Top - pair.Value[i].Margin.Bottom;
-                    pair.Value[i].Width = keySize.Width - pair.Value[i].Margin.Left - pair.Value[i].Margin.Right;
+                    if ((keySize.Height - KeyMargin.Top - KeyMargin.Bottom) < 0)
+                    {
+                        pair.Value[i].Height = 0;
+                    }
+                    else
+                    {
+                        pair.Value[i].Height = keySize.Height - KeyMargin.Top - KeyMargin.Bottom;
+                    }
+
+                    if ((keySize.Width - KeyMargin.Left - KeyMargin.Right) < 0)
+                    {
+                        pair.Value[i].Width = 0;
+                    }
+                    else
+                    {
+                        pair.Value[i].Width = keySize.Width - KeyMargin.Left - KeyMargin.Right;
+                    }
 
                     pair.Value[i].Measure(keySize);
                 }
@@ -98,8 +127,8 @@ namespace VirtualKeyboard
                         location: new Point(leftOffSet, topOffSets[i]),
                         size: pair.Value[i].DesiredSize));
 
-                    topOffSets[i] += pair.Value[i].Height + pair.Value[i].Margin.Top + pair.Value[i].Margin.Bottom;
-                    leftOffSet += pair.Value[i].Width + pair.Value[i].Margin.Left + pair.Value[i].Margin.Right;
+                    topOffSets[i] += pair.Value[i].Height + KeyMargin.Top + KeyMargin.Bottom;
+                    leftOffSet += pair.Value[i].Width + KeyMargin.Left + KeyMargin.Right;
                 }
 
                 leftOffSet = 0;
@@ -119,7 +148,7 @@ namespace VirtualKeyboard
                     ((ContentPresenter)key).ApplyTemplate();                    
 
                     bufferKey = VisualTreeHelper.GetChild(key, 0) as FrameworkElement;
-                }                
+                }
 
                 KeyMetadata data = Keyboard.GetKeyMetadata(bufferKey);
 

@@ -17,8 +17,19 @@
         <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"/>
         <TextBox Grid.Row="0" Background="Green" Height="20" Width="300" HorizontalAlignment="Right"/>
 
+        <Button Grid.Column="0"
+                Height="50"
+                Width="100"
+                HorizontalAlignment="Center"
+                Content="Switch keyboard"
+                Focusable="False"
+                Click="Button_Click"/>
+
         <!--<key:KeyboardPanel></key:KeyboardPanel>-->
 
-        <key:Keyboard Grid.Row="1"/>
+        <key:Keyboard Grid.Row="1" 
+                      KeyboardPart="All"
+                      KeyMargin="5"
+                      Name="keyboard"/>
     </Grid>
 </Window>

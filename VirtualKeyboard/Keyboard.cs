@@ -22,7 +22,6 @@ namespace VirtualKeyboard
     {
         private const int ROW_COUNT = 4;
 
-        //private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
         private static KeyMetadata[][] _keyBoardMetadatas;
         private static KeyMetadata[][] _numpadMetadatas;
 
@@ -35,6 +34,9 @@ namespace VirtualKeyboard
         public static readonly DependencyProperty LShiftKeyCheckedProperty;
         public static readonly DependencyProperty LShiftKeyUncheckedProperty;
         public static readonly DependencyProperty SelectLenguageProperty;
+        public static readonly DependencyProperty KeyMarginProperty;
+        public static readonly DependencyProperty KeyboardMarginProperty;
+        public static readonly DependencyProperty NumpadMarginProperty;
 
         public static readonly DependencyProperty ButtonMetadataProperty;
 
@@ -99,6 +101,24 @@ namespace VirtualKeyboard
                 name: nameof(SelectLenguage),
                 propertyType: typeof(ICommand),
                 ownerType: typeof(Keyboard));
+
+            KeyMarginProperty = DependencyProperty.Register(
+                name: nameof(KeyMargin),
+                propertyType: typeof(Thickness),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(new Thickness(3)));
+
+            KeyboardMarginProperty = DependencyProperty.Register(
+                name: nameof(KeyboardMargin),
+                propertyType: typeof(Thickness),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(new Thickness(5)));
+
+            NumpadMarginProperty = DependencyProperty.Register(
+                name: nameof(NumpadMargin),
+                propertyType: typeof(Thickness),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(new Thickness(5)));
 
             ButtonMetadataProperty = DependencyProperty.RegisterAttached(
                 name: "KeyMetadata",
@@ -171,7 +191,25 @@ namespace VirtualKeyboard
             set => SetValue(SelectLenguageProperty, value);
         }
 
-        private static string TranslateKeyCode(VirtualKeyShort keyCode, int? languageId = null) 
+        public Thickness KeyMargin 
+        {
+            get => (Thickness)GetValue(KeyMarginProperty);
+            set => SetValue(KeyMarginProperty, value);
+        }
+
+        public Thickness KeyboardMargin 
+        {
+            get => (Thickness)GetValue(KeyboardMarginProperty);
+            set => SetValue(KeyboardMarginProperty, value);
+        }
+
+        public Thickness NumpadMargin 
+        {
+            get => (Thickness)GetValue(NumpadMarginProperty);
+            set => SetValue(NumpadMarginProperty, value);
+        }
+        
+        private static string TranslateKeyCode(VirtualKeyShort keyCode, bool doesShiftPresses = false, int? languageId = null) 
         {
             StringBuilder builder = new();
 
@@ -180,6 +218,17 @@ namespace VirtualKeyboard
             GetKeyboardState(buffer);
 
             IntPtr hkl;
+
+            if (doesShiftPresses)
+            {
+                buffer[16] = 128;
+                buffer[160] = 128;
+            }
+            else 
+            {
+                buffer[16] = 0;
+                buffer[160] = 0;
+            }
 
             if (languageId is null)
             {
@@ -371,7 +420,7 @@ namespace VirtualKeyboard
         private static ICommand CreateDefaultKeyClickCommand() =>
             new RelayCommand(metadata =>
             {
-                INPUT[] inputs = new INPUT[1];
+                INPUT[] inputs = new INPUT[2];
 
                 inputs[0] = new INPUT()
                 {
@@ -384,8 +433,21 @@ namespace VirtualKeyboard
                         }
                     }
                 };
+                
+                inputs[1] = new INPUT()
+                {
+                    type = (uint)InputEventType.INPUT_KEYBOARD,
+                    U = new InputUnion()
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = ((KeyMetadata)metadata).KeyCode.Value,
+                            dwFlags = KEYEVENTF.KEYUP
+                        }
+                    }
+                };
 
-                SendInput(1, inputs, INPUT.Size);
+                SendInput((uint)inputs.Length, inputs, INPUT.Size);
             });
 
         private static ICommand CreateDefaultLShiftKeyCheckedCommand() =>
@@ -405,13 +467,25 @@ namespace VirtualKeyboard
                     }
                 };
 
-                SendInput(1, messages, INPUT.Size);
+                SendInput((uint)messages.Length, messages, INPUT.Size);
 
                 IEnumerable<KeyViewModel> keysReference = keys as IEnumerable<KeyViewModel>;
 
                 foreach (KeyViewModel key in keysReference)
                 {
-                    key.Name = key.Name.ToUpper();
+                    key.Name = key.KeyData switch
+                    {
+                        { KeyCode: VirtualKeyShort.LSHIFT } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.TAB } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.RETURN } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.BACK } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.SPACE } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.LEFT } => key.Name.ToUpper(),
+                        { KeyCode: VirtualKeyShort.RIGHT } => key.Name.ToUpper(),
+                        { IsLayoutSwitch: true } => key.Name.ToUpper(),
+                        { Is: true } => key.Name.ToUpper(),
+                        _ => TranslateKeyCode(key.KeyData.KeyCode.Value, true).ToUpper()
+                    };
                 }
             });
 
@@ -433,13 +507,25 @@ namespace VirtualKeyboard
                     }
                 };
 
-                SendInput(1, messages, INPUT.Size);
+                SendInput((uint)messages.Length, messages, INPUT.Size);
 
                 IEnumerable<KeyViewModel> keysReference = keys as IEnumerable<KeyViewModel>;
 
                 foreach (KeyViewModel key in keysReference)
                 {
-                    key.Name = key.Name.ToLower();
+                    key.Name = key.KeyData switch
+                    {
+                        { KeyCode: VirtualKeyShort.LSHIFT } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.TAB } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.RETURN } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.BACK } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.SPACE } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.LEFT } => key.Name.ToLower(),
+                        { KeyCode: VirtualKeyShort.RIGHT } => key.Name.ToLower(),
+                        { IsLayoutSwitch: true } => key.Name.ToLower(),
+                        { Is: true } => key.Name.ToLower(),
+                        _ => TranslateKeyCode(key.KeyData.KeyCode.Value).ToLower()
+                    };
                 }
             });
 
@@ -454,6 +540,13 @@ namespace VirtualKeyboard
                     wParam: IntPtr.Zero, 
                     lParam: (IntPtr)((CultureInfo)lenguage).KeyboardLayoutId);
 
+                byte[] buffer = new byte[255];
+
+                GetKeyboardState(buffer);
+
+                bool doesShiftPressed = buffer[16] == 129 && buffer[160] == 129
+                    || buffer[16] == 128 && buffer[160] == 128;
+
                 foreach (KeyViewModel key in KeysData)
                 {
                     key.Name = key.KeyData switch
@@ -467,7 +560,9 @@ namespace VirtualKeyboard
                         { KeyCode: VirtualKeyShort.RIGHT } => key.Name,
                         { IsLayoutSwitch: true } => key.Name,
                         { Is: true } => key.Name,
-                        _ => TranslateKeyCode(key.KeyData.KeyCode.Value, ((CultureInfo)lenguage).KeyboardLayoutId).ToLower()
+                        _ => doesShiftPressed 
+                                ? TranslateKeyCode(key.KeyData.KeyCode.Value, doesShiftPressed, ((CultureInfo)lenguage).KeyboardLayoutId).ToUpper()
+                                : TranslateKeyCode(key.KeyData.KeyCode.Value, doesShiftPressed, ((CultureInfo)lenguage).KeyboardLayoutId).ToLower()
                     };
                 }
             });
