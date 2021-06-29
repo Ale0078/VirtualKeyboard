@@ -67,22 +67,78 @@
                                    LShiftKeyTemplate="{StaticResource LShiftKey}"
                                    LayoutKeyTemplate="{StaticResource layoutKey}"
                                    IsKeyTemplate="{StaticResource isKey}"/>
-    
+
+    <ControlTemplate x:Key="Keyboard"
+                     TargetType="{x:Type board:Keyboard}">
+        <ItemsControl ItemsSource="{TemplateBinding KeysData}"
+                      ItemTemplateSelector="{StaticResource keySelector}"
+                      Focusable="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <board:KeyboardPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="Numpad"
+                     TargetType="{x:Type board:Keyboard}">
+        <ItemsControl ItemsSource="{TemplateBinding NumpadData}"
+                      Focusable="False"
+                      ItemTemplate="{StaticResource defaultKey}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <board:KeyboardPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="All"
+                     TargetType="{x:Type board:Keyboard}">
+        <Grid Focusable="False">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <ItemsControl ItemsSource="{TemplateBinding KeysData}"
+                          ItemTemplateSelector="{StaticResource keySelector}"
+                          Focusable="False"
+                          Grid.Column="0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <board:KeyboardPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+            <ItemsControl ItemsSource="{TemplateBinding NumpadData}"
+                          ItemTemplate="{StaticResource defaultKey}"
+                          Focusable="False"
+                          Grid.Column="1">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <board:KeyboardPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </Grid>
+    </ControlTemplate>
+
     <Style TargetType="{x:Type board:Keyboard}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type board:Keyboard}">
-                    <ItemsControl ItemsSource="{TemplateBinding KeysData}"
-                                  ItemTemplateSelector="{StaticResource keySelector}"
-                                  Focusable="False">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <board:KeyboardPanel/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                    </ItemsControl>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Style.Triggers>
+            <Trigger Property="KeyboardPart" Value="Keyboard">
+                <Setter Property="Template" Value="{StaticResource Keyboard}"/>
+            </Trigger>
+
+            <Trigger Property="KeyboardPart" Value="Numpad">
+                <Setter Property="Template" Value="{StaticResource Numpad}"/>
+            </Trigger>
+
+            <Trigger Property="KeyboardPart" Value="All">
+                <Setter Property="Template" Value="{StaticResource All}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
 </ResourceDictionary>

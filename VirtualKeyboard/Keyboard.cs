@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -23,19 +20,17 @@ namespace VirtualKeyboard
 {
     public class Keyboard : Control
     {
-        private const int NUMPAD_ROWS = 4;
-        //private const int NUMPAD_COLUMNS = 3;
-        //private const double DEFAULT_BUTTON_WIDTH = 60;//ToDo: Set Width to buttons from user
-        //private const double DEFAULT_BUTTON_HEIGHT = 60;//ToDo: Set Height to buttons from user
+        private const int ROW_COUNT = 4;
 
         //private Thickness _buttonMargen = new Thickness(5);//ToDo: Set Margen to buttons from user
-        private KeyMetadata[][] _keyBoardMetadatas;
-        
-        public static readonly DependencyProperty HasNumpadProperty;
-        public static readonly DependencyProperty HasKeyBoardProperty;
+        private static KeyMetadata[][] _keyBoardMetadatas;
+        private static KeyMetadata[][] _numpadMetadatas;
+
+        public static readonly DependencyProperty KeyboardPartProperty;
         public static readonly DependencyProperty LanguagesIdProperty;
         public static readonly DependencyProperty CurrentLanguageProperty;
         public static readonly DependencyProperty KeysDataProperty;
+        public static readonly DependencyProperty NumpadDataProperty;
         public static readonly DependencyProperty KeyClickProperty;
         public static readonly DependencyProperty LShiftKeyCheckedProperty;
         public static readonly DependencyProperty LShiftKeyUncheckedProperty;
@@ -45,21 +40,18 @@ namespace VirtualKeyboard
 
         static Keyboard()
         {
+            GenerateKeyboardMetadatas();
+            GenerateNumpadeMetadatas();
+
             FocusableProperty.OverrideMetadata(
                 forType: typeof(Keyboard),
                 typeMetadata: new FrameworkPropertyMetadata(false));
 
-            HasNumpadProperty = DependencyProperty.Register(
-                name: nameof(HasNumpad),
-                propertyType: typeof(bool),
+            KeyboardPartProperty = DependencyProperty.Register(
+                name: nameof(KeyboardPart),
+                propertyType: typeof(KeyboardPart),
                 ownerType: typeof(Keyboard),
-                typeMetadata: new PropertyMetadata(true));
-
-            HasKeyBoardProperty = DependencyProperty.Register(
-                name: nameof(HasKeyBoard),
-                propertyType: typeof(bool),
-                ownerType: typeof(Keyboard),
-                typeMetadata: new PropertyMetadata(true));//ToDo: switch to true
+                typeMetadata: new PropertyMetadata(KeyboardPart.All));
 
             LanguagesIdProperty = DependencyProperty.Register(
                 name: nameof(LanguagesId),
@@ -76,7 +68,14 @@ namespace VirtualKeyboard
             KeysDataProperty = DependencyProperty.Register(
                 name: nameof(KeysData),
                 propertyType: typeof(IEnumerable<KeyViewModel>),
-                ownerType: typeof(Keyboard));
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(CreateKeysData()));
+
+            NumpadDataProperty = DependencyProperty.Register(
+                name: nameof(NumpadData),
+                propertyType: typeof(IEnumerable<KeyViewModel>),
+                ownerType: typeof(Keyboard),
+                typeMetadata: new PropertyMetadata(CreateNumpadData()));
 
             KeyClickProperty = DependencyProperty.Register(
                 name: nameof(KeyClick),
@@ -115,22 +114,13 @@ namespace VirtualKeyboard
 
         public Keyboard()
         {
-            GenerateMetadata();
-
-            KeysData = CreateKeysData();
             SelectLenguage = CreateDefaultSelectLenguageCommand();
         }
 
-        public bool HasNumpad 
+        public KeyboardPart KeyboardPart 
         {
-            get => (bool)GetValue(HasNumpadProperty);
-            set => SetValue(HasNumpadProperty, value);
-        }
-
-        public bool HasKeyBoard 
-        {
-            get => (bool)GetValue(HasKeyBoardProperty);
-            set => SetValue(HasKeyBoardProperty, value);
+            get => (KeyboardPart)GetValue(KeyboardPartProperty);
+            set => SetValue(KeyboardPartProperty, value);
         }
 
         public CultureInfo CurrentLanguage 
@@ -149,6 +139,12 @@ namespace VirtualKeyboard
         {
             get => (IEnumerable<KeyViewModel>)GetValue(KeysDataProperty);
             set => SetValue(KeysDataProperty, value);
+        }
+
+        public IEnumerable<KeyViewModel> NumpadData
+        {
+            get => (IEnumerable<KeyViewModel>)GetValue(NumpadDataProperty);
+            set => SetValue(NumpadDataProperty, value);
         }
 
         public ICommand KeyClick
@@ -199,9 +195,9 @@ namespace VirtualKeyboard
             return builder.ToString();
         }
 
-        private void GenerateMetadata()
+        private static void GenerateKeyboardMetadatas()
         {
-            _keyBoardMetadatas = new KeyMetadata[NUMPAD_ROWS][];
+            _keyBoardMetadatas = new KeyMetadata[ROW_COUNT][];
 
             _keyBoardMetadatas[0] = new KeyMetadata[]
             {
@@ -263,7 +259,39 @@ namespace VirtualKeyboard
             };
         }
 
-        private IEnumerable<KeyViewModel> CreateKeysData() 
+        private static void GenerateNumpadeMetadatas() 
+        {
+            _numpadMetadatas = new KeyMetadata[ROW_COUNT][];
+
+            _numpadMetadatas[0] = new KeyMetadata[]
+            {
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD7, Column = 0, Row = 0 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD8, Column = 1, Row = 0 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD9, Column = 2, Row = 0 }
+            };
+
+            _numpadMetadatas[1] = new KeyMetadata[]
+            {
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD4, Column = 0, Row = 1 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD5, Column = 1, Row = 1 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD6, Column = 2, Row = 1 }
+            };
+
+            _numpadMetadatas[2] = new KeyMetadata[]
+            {
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD1, Column = 0, Row = 2 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD2, Column = 1, Row = 2 },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD3, Column = 2, Row = 2 }
+            };
+
+            _numpadMetadatas[3] = new KeyMetadata[]
+            {
+                new KeyMetadata() { KeyCode = VirtualKeyShort.NUMPAD0, Column = 0, Row = 3, WidthScale = 2.0d },
+                new KeyMetadata() { KeyCode = VirtualKeyShort.DECIMAL, Column = 1, Row = 3 }
+            };
+        }
+
+        private static IEnumerable<KeyViewModel> CreateKeysData() 
         {
             ObservableCollection<KeyViewModel> keysData = new();
 
@@ -296,6 +324,27 @@ namespace VirtualKeyboard
             }
 
             return keysData;
+        }
+
+        private static IEnumerable<KeyViewModel> CreateNumpadData() 
+        {
+            ObservableCollection<KeyViewModel> numpadeDatas = new();
+
+            foreach (KeyMetadata[] metadatas in _numpadMetadatas)
+            {
+                foreach (KeyMetadata data in metadatas)
+                {
+                    KeyViewModel keyData = new()
+                    {
+                        Name = TranslateKeyCode(data.KeyCode.Value),
+                        KeyData = data
+                    };
+
+                    numpadeDatas.Add(keyData);
+                }
+            }
+
+            return numpadeDatas;
         }
 
         private static CultureInfo GetCurrentLanguage() =>
