@@ -26,7 +26,7 @@ namespace VirtualKeyboard
                 name: nameof(KeyMargin),
                 propertyType: typeof(Thickness),
                 ownerType: typeof(KeyboardPanel),
-                typeMetadata: new PropertyMetadata(new Thickness(3)));
+                typeMetadata: new PropertyMetadata(new Thickness(2)));
         }
 
         public KeyboardPanel()

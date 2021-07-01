@@ -29,12 +29,6 @@ namespace VirtualKeyboard.Functions
         [DllImport("user32.dll")]
         internal static extern uint GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern HKL ActivateKeyboardLayout(HKL hkl, uint Flags);
-
-        [DllImport("user32.dll")]
-        internal static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-
         [DllImport("user32.dll")]
         internal static extern IntPtr GetForegroundWindow();
 

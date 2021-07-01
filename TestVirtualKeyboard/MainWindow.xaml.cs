@@ -22,28 +22,9 @@ namespace TestVirtualKeyboard
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int _counter = 0;
-
         public MainWindow()
         {
             InitializeComponent();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            keyboard.KeyboardPart = _counter switch
-            {
-                0 => KeyboardPart.All,
-                1 => KeyboardPart.Keyboard,
-                _ => KeyboardPart.Numpad
-            };
-
-            _counter++;
-
-            if (_counter == 3)
-            {
-                _counter = 0;
-            }
         }
     }
 }

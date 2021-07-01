@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
@@ -58,6 +57,10 @@ namespace VirtualKeyboard
         {
             GenerateKeyboardMetadatas();
             GenerateNumpadeMetadatas();
+
+            FocusableProperty.OverrideMetadata(
+                forType: typeof(ComboBoxItem),
+                typeMetadata: new FrameworkPropertyMetadata(false));
 
             FocusableProperty.OverrideMetadata(
                 forType: typeof(Keyboard),
@@ -120,7 +123,7 @@ namespace VirtualKeyboard
                 name: nameof(KeyMargin),
                 propertyType: typeof(Thickness),
                 ownerType: typeof(Keyboard),
-                typeMetadata: new PropertyMetadata(new Thickness(3)));
+                typeMetadata: new PropertyMetadata(new Thickness(2)));
 
             KeyboardMarginProperty = DependencyProperty.Register(
                 name: nameof(KeyboardMargin),
@@ -165,6 +168,11 @@ namespace VirtualKeyboard
                 classType: typeof(UIElement),
                 routedEvent: GotKeyboardFocusEvent,
                 handler: (KeyboardFocusChangedEventHandler)OnUIElementGotKeyboardFocus);
+
+            EventManager.RegisterClassHandler(
+                classType: typeof(UIElement),
+                routedEvent: MouseLeftButtonUpEvent,
+                handler: (RoutedEventHandler)OnUIElementMouseLeftButtonUpEvent);
 
             Application.Current.Exit += OnExit;
         }
@@ -242,9 +250,7 @@ namespace VirtualKeyboard
             get => (Thickness)GetValue(NumpadMarginProperty);
             set => SetValue(NumpadMarginProperty, value);
         }
-
         
-
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -287,13 +293,26 @@ namespace VirtualKeyboard
             }
         }
 
+        public virtual void OnUIElementMouseLeftButtonUpEvent(object sender, RoutedEventArgs e) 
+        {
+            if (sender is not TextBox)
+            {
+                System.Windows.Input.Keyboard.Focus(sender as IInputElement);
+            }
+        }
+
         public virtual void OnUIElementGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             if (sender is not TextBox && sender is not Window)
             {
-                _keyboardAnimationDown.Begin(this);
+                if (_wasTextBoxChecked)
+                {
+                    _keyboardAnimationDown.Begin(this);
+                }
 
                 _wasTextBoxChecked = false;
+
+                e.Handled = true;
             }
             else if (sender is TextBox)
             {
@@ -310,9 +329,9 @@ namespace VirtualKeyboard
 
                     _wasTextBoxChecked = true;
                 }
-            }
 
-            e.Handled = true;
+                e.Handled = true;
+            }
         }
 
         private static string TranslateKeyCode(VirtualKeyShort keyCode, bool doesShiftPresses = false, int? languageId = null) 
@@ -344,7 +363,7 @@ namespace VirtualKeyboard
             {
                 hkl = (IntPtr)languageId.Value;
             }
-
+            
             ToUnicodeEx((uint)keyCode, 0, buffer, builder, 3, 0, hkl);
 
             return builder.ToString();
@@ -697,7 +716,14 @@ namespace VirtualKeyboard
             _keyboardAnimationDown.Children.Add(_textboxLostFocus);
             _keyboardAnimationUp.Children.Add(_textboxGotFocus);
 
-            INameScope nameScope = NameScope.GetNameScope(Application.Current.MainWindow);
+            FrameworkElement window = Parent as FrameworkElement;
+
+            while (window is not Window) 
+            {
+                window = window.Parent as FrameworkElement;
+            }
+
+            INameScope nameScope = NameScope.GetNameScope(window);
 
             nameScope.RegisterName(SCALE_TRANSFORM_KEYBOARD_NAME, scaleTransform);
 

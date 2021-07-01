@@ -7,32 +7,78 @@
         mc:Ignorable="d"
         xmlns:key="clr-namespace:VirtualKeyboard;assembly=VirtualKeyboard"
         Title="MainWindow" Height="450" Width="800">
-    <Canvas>
+    <Grid Background="BurlyWood"
+          Focusable="True">
+        <Grid.Resources>
+            <Style TargetType="{x:Type TextBox}">
+                <Setter Property="Margin" Value="0, 15, 0, 0"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
 
-        <!--<key:CustomControl1 Background="red" Height="100" Width="100"/>-->
-        <TextBox Canvas.Left="300" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"
-                 key:Keyboard.InputType="NumberOnly"/>
-        <TextBox  Background="Green" Height="20" Width="300" HorizontalAlignment="Right"
-                 key:Keyboard.InputType="NumberText"/>
+            <Style TargetType="{x:Type TextBlock}" x:Key="IdentifierTextBlock">
+                <Setter Property="Margin" Value="0, 0, 10, 0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Style>
+        </Grid.Resources>
 
-        <!--<Button Grid.Column="0"
-                Height="50"
-                Width="100"
-                HorizontalAlignment="Center"
-                Content="Switch keyboard"
-                Click="Button_Click"/>-->
-        <Button Grid.Column="0"
-                Height="50"
-                Width="100"
-                HorizontalAlignment="Center"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
 
-        <!--<key:KeyboardPanel></key:KeyboardPanel>-->
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
 
-        <key:Keyboard Canvas.Top="200"
-                      KeyboardPart="All"
-                      KeyMargin="7"
-                      Height="200"
-                      Width="800"
-                      Name="keyboard"/>
-    </Canvas>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Keyboard Test"
+                       FontSize="32"
+                       Foreground="White"
+                       FontWeight="DemiBold"
+                       TextAlignment="Center"
+                       Grid.Row="0"
+                       Grid.ColumnSpan="3"/>
+
+            <TextBlock Grid.Row="1"
+                       Grid.Column="0"
+                       Style="{StaticResource IdentifierTextBlock}"
+                       Text="Full Keyboard"/>
+            <TextBlock Grid.Row="2"
+                       Grid.Column="0"
+                       Style="{StaticResource IdentifierTextBlock}"
+                       Text="Keyboard"/>
+            <TextBlock Grid.Row="3"
+                       Grid.Column="0"
+                       Style="{StaticResource IdentifierTextBlock}"
+                       Text="Numpad"/>
+
+            <TextBox key:Keyboard.InputType="NumberText"
+                     Grid.Row="1"
+                     Grid.Column="1"/>
+            <TextBox key:Keyboard.InputType="TextOnly"
+                     Grid.Row="2"
+                     Grid.Column="1"/>
+            <TextBox key:Keyboard.InputType="NumberOnly"
+                     Grid.Row="3"
+                     Grid.Column="1"/>
+        </Grid>
+
+        <key:Keyboard Grid.Row="1"
+                      Margin="0, 20, 0, 0"
+                      KeyboardMargin="40, 0, 40, 0"
+                      NumpadMargin="100, 0, 100, 0"/>
+    </Grid>
 </Window>
