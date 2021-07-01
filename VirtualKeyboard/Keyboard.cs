@@ -165,6 +165,8 @@ namespace VirtualKeyboard
                 classType: typeof(UIElement),
                 routedEvent: GotKeyboardFocusEvent,
                 handler: (KeyboardFocusChangedEventHandler)OnUIElementGotKeyboardFocus);
+
+            Application.Current.Exit += OnExit;
         }
         
         public bool DoesTextBoxFocused { get; set; }
@@ -241,6 +243,8 @@ namespace VirtualKeyboard
             set => SetValue(NumpadMarginProperty, value);
         }
 
+        
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -251,6 +255,36 @@ namespace VirtualKeyboard
             }
 
             _isTemplateSwitching = true;
+        }
+
+        public virtual void OnExit(object sender, ExitEventArgs args) 
+        {
+            byte[] buffer = new byte[255];
+
+            GetKeyboardState(buffer);
+
+            bool doesShiftPressed = buffer[16] == 129 && buffer[160] == 129
+                || buffer[16] == 128 && buffer[160] == 128;
+
+            if (doesShiftPressed)
+            {
+                INPUT[] messages = new INPUT[1];
+
+                messages[0] = new INPUT
+                {
+                    type = (ushort)InputEventType.INPUT_KEYBOARD,
+                    U = new InputUnion
+                    {
+                        ki = new KEYBDINPUT
+                        {
+                            wVk = VirtualKeyShort.LSHIFT,
+                            dwFlags = KEYEVENTF.KEYUP
+                        }
+                    }
+                };
+
+                SendInput((uint)messages.Length, messages, INPUT.Size);
+            }
         }
 
         public virtual void OnUIElementGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
