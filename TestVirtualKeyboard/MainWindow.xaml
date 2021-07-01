@@ -7,29 +7,32 @@
         mc:Ignorable="d"
         xmlns:key="clr-namespace:VirtualKeyboard;assembly=VirtualKeyboard"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        
-        <!--<key:CustomControl1 Background="red" Height="100" Width="100"/>-->
-        <TextBox Grid.Row="0" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"/>
-        <TextBox Grid.Row="0" Background="Green" Height="20" Width="300" HorizontalAlignment="Right"/>
+    <Canvas>
 
-        <Button Grid.Column="0"
+        <!--<key:CustomControl1 Background="red" Height="100" Width="100"/>-->
+        <TextBox Canvas.Left="300" Background="Yellow" Height="20" Width="300" HorizontalAlignment="Left"
+                 key:Keyboard.InputType="NumberOnly"/>
+        <TextBox  Background="Green" Height="20" Width="300" HorizontalAlignment="Right"
+                 key:Keyboard.InputType="NumberText"/>
+
+        <!--<Button Grid.Column="0"
                 Height="50"
                 Width="100"
                 HorizontalAlignment="Center"
                 Content="Switch keyboard"
-                Focusable="False"
-                Click="Button_Click"/>
+                Click="Button_Click"/>-->
+        <Button Grid.Column="0"
+                Height="50"
+                Width="100"
+                HorizontalAlignment="Center"/>
 
         <!--<key:KeyboardPanel></key:KeyboardPanel>-->
 
-        <key:Keyboard Grid.Row="1" 
+        <key:Keyboard Canvas.Top="200"
                       KeyboardPart="All"
-                      KeyMargin="5"
+                      KeyMargin="7"
+                      Height="200"
+                      Width="800"
                       Name="keyboard"/>
-    </Grid>
+    </Canvas>
 </Window>

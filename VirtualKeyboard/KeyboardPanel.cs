@@ -64,6 +64,16 @@ namespace VirtualKeyboard
                 _isChildChanged = false;
             }
 
+            if (double.IsInfinity(availableSize.Height))
+            {
+                availableSize.Height = _keyboardElements.Sum(pair => pair.Value[0].Height);
+            }
+
+            if (double.IsInfinity(availableSize.Width))
+            {
+                availableSize.Width = _keyboardElements.First().Value.Sum(element => element.Width);
+            }
+
             SetKeysHeightScales(availableSize.Height);
 
             int rowIndex = 0;
@@ -76,23 +86,7 @@ namespace VirtualKeyboard
                 {
                     Size keySize = GetKeySize(widthScales[i], _keysHeightScales[i], pair.Value[i]);
 
-                    if ((keySize.Height - KeyMargin.Top - KeyMargin.Bottom) < 0)
-                    {
-                        pair.Value[i].Height = 0;
-                    }
-                    else
-                    {
-                        pair.Value[i].Height = keySize.Height - KeyMargin.Top - KeyMargin.Bottom;
-                    }
-
-                    if ((keySize.Width - KeyMargin.Left - KeyMargin.Right) < 0)
-                    {
-                        pair.Value[i].Width = 0;
-                    }
-                    else
-                    {
-                        pair.Value[i].Width = keySize.Width - KeyMargin.Left - KeyMargin.Right;
-                    }
+                    SetKeySize(pair.Value[i], keySize);
 
                     pair.Value[i].Measure(keySize);
                 }
@@ -257,6 +251,27 @@ namespace VirtualKeyboard
             }
 
             return keySize;
+        }
+
+        private void SetKeySize(FrameworkElement key, Size keySize) 
+        {
+            if ((keySize.Height - KeyMargin.Top - KeyMargin.Bottom) < 0)
+            {
+                key.Height = 0;
+            }
+            else
+            {
+                key.Height = keySize.Height - KeyMargin.Top - KeyMargin.Bottom;
+            }
+
+            if ((keySize.Width - KeyMargin.Left - KeyMargin.Right) < 0)
+            {
+                key.Width = 0;
+            }
+            else
+            {
+                key.Width = keySize.Width - KeyMargin.Left - KeyMargin.Right;
+            }
         }
 
 

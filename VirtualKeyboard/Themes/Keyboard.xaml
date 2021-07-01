@@ -61,6 +61,14 @@
                 Style="{StaticResource keyStyle}"/>
     </DataTemplate>
 
+    <ItemsPanelTemplate x:Key="KeyboardPanel">
+        <board:KeyboardPanel/>
+    </ItemsPanelTemplate>
+
+    <ItemsPanelTemplate x:Key="NumpadPanle">
+        <board:KeyboardPanel/>
+    </ItemsPanelTemplate>
+
     <selectors:KeyTemplateSelector x:Key="keySelector"
                                    DefaultKeyTemplate="{StaticResource defaultKey}"
                                    LShiftKeyTemplate="{StaticResource LShiftKey}"
@@ -69,36 +77,32 @@
 
     <ControlTemplate x:Key="Keyboard"
                      TargetType="{x:Type board:Keyboard}">
-        <ItemsControl ItemsSource="{TemplateBinding KeysData}"
-                      ItemTemplateSelector="{StaticResource keySelector}"
-                      Margin="{TemplateBinding KeyMargin}"
-                      Focusable="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <board:KeyboardPanel KeyMargin="{Binding Path=KeyMargin, RelativeSource={RelativeSource AncestorType=board:Keyboard}}"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        <Grid Focusable="False"
+              Margin="{TemplateBinding KeyMargin}">
+            <ItemsControl ItemsSource="{TemplateBinding KeysData}"
+                          ItemTemplateSelector="{StaticResource keySelector}"
+                          ItemsPanel="{StaticResource KeyboardPanel}"                      
+                          Focusable="False"/>
+        </Grid>
     </ControlTemplate>
 
     <ControlTemplate x:Key="Numpad"
                      TargetType="{x:Type board:Keyboard}">
-        <ItemsControl ItemsSource="{TemplateBinding NumpadData}"
-                      ItemTemplate="{StaticResource defaultKey}"
-                      Margin="{TemplateBinding NumpadMargin}"
-                      Focusable="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <board:KeyboardPanel KeyMargin="{Binding Path=KeyMargin, RelativeSource={RelativeSource AncestorType=board:Keyboard}}"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ItemsControl>
+        <Grid RenderTransformOrigin="1, 1"
+              Focusable="False"
+              Margin="{TemplateBinding NumpadMargin}">
+            <ItemsControl ItemsSource="{TemplateBinding NumpadData}"
+                          ItemTemplate="{StaticResource defaultKey}"
+                          ItemsPanel="{StaticResource NumpadPanle}"
+                          Focusable="False"/>
+        </Grid>
     </ControlTemplate>
 
     <ControlTemplate x:Key="All"
                      TargetType="{x:Type board:Keyboard}">
         <Grid Focusable="False"
-              Margin="{TemplateBinding Margin}">
+              Margin="{TemplateBinding Margin}"
+              RenderTransformOrigin="1, 1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*"/>
                 <ColumnDefinition Width="1*"/>
@@ -106,27 +110,17 @@
 
             <ItemsControl ItemsSource="{TemplateBinding KeysData}"
                           ItemTemplateSelector="{StaticResource keySelector}"
+                          ItemsPanel="{StaticResource KeyboardPanel}"
                           Margin="{TemplateBinding KeyboardMargin}"
                           Focusable="False"
-                          Grid.Column="0">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <board:KeyboardPanel KeyMargin="{Binding Path=KeyMargin, RelativeSource={RelativeSource AncestorType=board:Keyboard}}"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
+                          Grid.Column="0"/>
 
             <ItemsControl ItemsSource="{TemplateBinding NumpadData}"
                           ItemTemplate="{StaticResource defaultKey}"
+                          ItemsPanel="{StaticResource NumpadPanle}"
                           Margin="{TemplateBinding NumpadMargin}"
                           Focusable="False"
-                          Grid.Column="1">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <board:KeyboardPanel KeyMargin="{Binding Path=KeyMargin, RelativeSource={RelativeSource AncestorType=board:Keyboard}}"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-            </ItemsControl>
+                          Grid.Column="1"/>
         </Grid>
     </ControlTemplate>
 

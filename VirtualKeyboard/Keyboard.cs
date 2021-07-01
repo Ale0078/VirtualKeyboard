@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Controls;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Windows.Media;
+using System.Windows.Markup;
+using System.Windows.Media.Animation;
 
 using static VirtualKeyboard.Functions.User32;
 
@@ -20,10 +24,19 @@ namespace VirtualKeyboard
 {
     public class Keyboard : Control
     {
+        private const string SCALE_TRANSFORM_KEYBOARD_NAME = "KeyboardScale";
+
         private const int ROW_COUNT = 4;
 
         private static KeyMetadata[][] _keyBoardMetadatas;
         private static KeyMetadata[][] _numpadMetadatas;
+
+        private bool _isTemplateSwitching;
+        private bool _wasTextBoxChecked;
+        private Storyboard _keyboardAnimationUp;
+        private Storyboard _keyboardAnimationDown;
+        private DoubleAnimation _textboxGotFocus;
+        private DoubleAnimation _textboxLostFocus;
 
         public static readonly DependencyProperty KeyboardPartProperty;
         public static readonly DependencyProperty LanguagesIdProperty;
@@ -38,7 +51,8 @@ namespace VirtualKeyboard
         public static readonly DependencyProperty KeyboardMarginProperty;
         public static readonly DependencyProperty NumpadMarginProperty;
 
-        public static readonly DependencyProperty ButtonMetadataProperty;
+        public static readonly DependencyProperty KeyMetadataProperty;
+        public static readonly DependencyProperty InputTypeProperty;
 
         static Keyboard()
         {
@@ -120,22 +134,40 @@ namespace VirtualKeyboard
                 ownerType: typeof(Keyboard),
                 typeMetadata: new PropertyMetadata(new Thickness(5)));
 
-            ButtonMetadataProperty = DependencyProperty.RegisterAttached(
+            KeyMetadataProperty = DependencyProperty.RegisterAttached(
                 name: "KeyMetadata",
                 propertyType: typeof(KeyMetadata),
                 ownerType: typeof(Keyboard));
+
+            InputTypeProperty = DependencyProperty.RegisterAttached(
+                name: "InputType",
+                propertyType: typeof(EnterType),
+                ownerType: typeof(Keyboard));
         }
 
-        internal static void SetKeyMetadata(DependencyObject element, KeyMetadata metadata) =>
-                element.SetValue(ButtonMetadataProperty, metadata);
+        public static void SetKeyMetadata(DependencyObject element, KeyMetadata metadata) =>
+                element.SetValue(KeyMetadataProperty, metadata);
 
-        internal static KeyMetadata GetKeyMetadata(DependencyObject element) =>
-            (KeyMetadata)element.GetValue(ButtonMetadataProperty);
+        public static KeyMetadata GetKeyMetadata(DependencyObject element) =>
+            (KeyMetadata)element.GetValue(KeyMetadataProperty);
+
+        public static void SetInputType(DependencyObject element, EnterType enterType) =>
+            element.SetValue(InputTypeProperty, enterType);
+
+        public static EnterType GetInputType(DependencyObject element) =>
+            (EnterType)element.GetValue(InputTypeProperty);
 
         public Keyboard()
         {
             SelectLenguage = CreateDefaultSelectLenguageCommand();
+
+            EventManager.RegisterClassHandler(
+                classType: typeof(UIElement),
+                routedEvent: GotKeyboardFocusEvent,
+                handler: (KeyboardFocusChangedEventHandler)OnUIElementGotKeyboardFocus);
         }
+        
+        public bool DoesTextBoxFocused { get; set; }
 
         public KeyboardPart KeyboardPart 
         {
@@ -208,7 +240,47 @@ namespace VirtualKeyboard
             get => (Thickness)GetValue(NumpadMarginProperty);
             set => SetValue(NumpadMarginProperty, value);
         }
-        
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            if (!_isTemplateSwitching)
+            {
+                SetStoryboard();
+            }
+
+            _isTemplateSwitching = true;
+        }
+
+        public virtual void OnUIElementGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (sender is not TextBox && sender is not Window)
+            {
+                _keyboardAnimationDown.Begin(this);
+
+                _wasTextBoxChecked = false;
+            }
+            else if (sender is TextBox)
+            {
+                KeyboardPart = GetInputType(sender as DependencyObject) switch
+                {
+                    EnterType.NumberOnly => KeyboardPart.Numpad,
+                    EnterType.TextOnly => KeyboardPart.Keyboard,
+                    _ => KeyboardPart.All
+                };
+
+                if (!_wasTextBoxChecked)
+                {
+                    _keyboardAnimationUp.Begin(this);
+
+                    _wasTextBoxChecked = true;
+                }
+            }
+
+            e.Handled = true;
+        }
+
         private static string TranslateKeyCode(VirtualKeyShort keyCode, bool doesShiftPresses = false, int? languageId = null) 
         {
             StringBuilder builder = new();
@@ -566,5 +638,43 @@ namespace VirtualKeyboard
                     };
                 }
             });
+
+        private void SetStoryboard() 
+        {
+            ScaleTransform scaleTransform = new(1, 0);
+
+            _keyboardAnimationUp = new Storyboard();
+            _keyboardAnimationDown = new Storyboard();
+
+            _textboxGotFocus = new DoubleAnimation
+            {
+                To = 1,
+                From = 0,
+                Duration = TimeSpan.FromSeconds(0.5)
+            };
+
+            _textboxLostFocus = new DoubleAnimation
+            {
+                To = 0,
+                From = 1,
+                Duration = TimeSpan.FromSeconds(0.5)
+            };
+
+            _keyboardAnimationDown.Children.Add(_textboxLostFocus);
+            _keyboardAnimationUp.Children.Add(_textboxGotFocus);
+
+            INameScope nameScope = NameScope.GetNameScope(Application.Current.MainWindow);
+
+            nameScope.RegisterName(SCALE_TRANSFORM_KEYBOARD_NAME, scaleTransform);
+
+            RenderTransform = scaleTransform;
+            RenderTransformOrigin = new Point(1, 1);
+
+            Storyboard.SetTargetName(_textboxGotFocus, SCALE_TRANSFORM_KEYBOARD_NAME);
+            Storyboard.SetTargetName(_textboxLostFocus, SCALE_TRANSFORM_KEYBOARD_NAME);
+
+            Storyboard.SetTargetProperty(_textboxGotFocus, new PropertyPath(ScaleTransform.ScaleYProperty));
+            Storyboard.SetTargetProperty(_textboxLostFocus, new PropertyPath(ScaleTransform.ScaleYProperty));
+        }
     }
 }
